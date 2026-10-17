@@ -1,6 +1,6 @@
 {
   "name": "skillguard",
-  "version": "0.3.0",
+  "version": "0.3.1",
   "description": "Evasion-resistant security scanner for AI agent skills, plugins and MCP servers. Trivy for Agent Skills.",
   "type": "module",
   "bin": {

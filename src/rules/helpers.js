@@ -38,23 +38,56 @@ export function eachMatch(pattern, text) {
   return out;
 }
 
-const DEFENSIVE_RE =
-  /\b(?:block|blocks|blocked|blocking|deny|denies|denied|forbid|forbids|forbidden|prevent|prevents|prevented|guard|guards|guarded|guardrail|disallow|disallowed|reject|rejects|rejected|refuse|refuses|refused|dangerous\w*|unsafe\w*|must\s+not|should\s+not|never|do\s+not|don'?t|avoid|warning|warn|instead\s+of|rather\s+than|prohibit\w*|banned|blocklist|blacklist|not\s+(?:be\s+)?follow\w*)\b/i;
+/**
+ * A negation that *governs the match itself*: "never run `curl | sh`",
+ * "do not read ~/.ssh". Bounded to the same clause — no sentence break and no
+ * newline — so an unrelated "do not" elsewhere in the file does not suppress.
+ */
+const NEGATION_RE =
+  /\b(?:never|do\s+not|don'?t|does\s+not|must\s+not|should\s+not|avoid|avoiding|refuse[sd]?|without|cannot|can'?t|nor|neither)\b[^.!?\n]{0,120}$/i;
+
+/**
+ * A guardrail marker that describes a *blocked* or *warned-about* thing: a
+ * blocklist of `git reset --hard`, a "What Gets Blocked" list, "a symlink
+ * planted here must not be followed".
+ */
+const GUARDRAIL_RE =
+  /\b(?:blocks?|blocked|blocking|blocklist|blacklist|deny|denies|denied|forbid|forbids|forbidden|prevent|prevents|prevented|guard|guards|guarded|guardrail|guardrails|disallow\w*|reject\w*|refuse\w*|prohibit\w*|banned|dangerous\w*|unsafe\w*|warnings?|warns?|warned)\b|must\s+not|should\s+not|not\s+be\s+followed|do\s+not\s+(?:run|use|execute|follow|copy|commit)/i;
 
 /**
  * True when the surrounding text frames the match as something to avoid, block
- * or warn about. A blocklist that quotes `git reset --hard`, or a document
- * that says "never run `curl | sh`", is not an instruction to run it.
+ * or warn about, rather than an instruction to do it.
  *
- * Both the preceding window and the rest of the current line are examined so
- * that a trailing warning ("... must not be followed") is honoured too.
+ * The scope is deliberately narrow — the same clause for a negation, the
+ * enclosing paragraph plus its heading for a guardrail marker — because a wide
+ * window lets a throwaway comment suppress a real finding elsewhere in the file.
  */
 export function inDefensiveContext(text, index, window = 400, matchLength = 0) {
-  const start = Math.max(0, index - window);
   const after = index + matchLength;
+  const lineStart = text.lastIndexOf('\n', index - 1) + 1;
   const lineEnd = text.indexOf('\n', after);
-  const end = Math.min(text.length, lineEnd === -1 ? text.length : lineEnd);
-  return DEFENSIVE_RE.test(`${text.slice(start, index)} ${text.slice(after, end)}`);
+  const end = lineEnd === -1 ? text.length : lineEnd;
+  const tail = text.slice(after, end);
+
+  // 1. A negation in the same clause, immediately governing this match.
+  if (NEGATION_RE.test(text.slice(lineStart, index))) return true;
+
+  // 2. A guardrail marker in the enclosing paragraph, or in the heading above it
+  //    (a list under "## What Gets Blocked" keeps its heading).
+  const chunk = `${text.slice(Math.max(0, index - window), index)} ${tail}`;
+  const boundary = /\n[ \t]*\n/g;
+  let last = -1;
+  let m;
+  while ((m = boundary.exec(chunk)) !== null) last = m.index + m[0].length;
+  let scope = last === -1 ? chunk : chunk.slice(last);
+
+  const heading = /(?:^|\n)[ \t]*#{1,6}[ \t]+[^\n]*/g;
+  let head = '';
+  while ((m = heading.exec(chunk)) !== null) {
+    if (last === -1 || m.index < last) head = m[0];
+  }
+  if (head) scope = `${head}\n${scope}`;
+  return GUARDRAIL_RE.test(scope);
 }
 
 export function findingAt(rule, ctx, index, match, extra = {}) {

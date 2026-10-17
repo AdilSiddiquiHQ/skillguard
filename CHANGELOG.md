@@ -6,6 +6,53 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+## [0.3.1] - 2026-10-18
+
+### Fixed
+
+- **Defensive-text suppression could hide real findings.** The check that skips
+  text *about* an attack — a blocklist quoting `git reset --hard`, a guide
+  saying "never run `curl | sh`" — matched any of ~35 keywords within a 400
+  character window. An unrelated sentence far away, such as a fixture's own
+  "Do not copy this file" comment, therefore silenced a genuine private-key
+  read. Suppression is now scoped to the match's own clause (for a negation)
+  or its paragraph and heading (for a guardrail marker). The change restored
+  the private-key, instruction-override and approval-bypass findings on the
+  bundled malicious fixture while leaving real-world precision unchanged.
+- The README's sample output is now checked by a test, so a sample the tool no
+  longer prints cannot ship again.
+
+## [0.3.0] - 2026-10-18
+
+Precision. A security scanner that cries wolf gets uninstalled, so this release
+is measured rather than asserted.
+
+### Changed
+
+- Rewrote the noisy rules to require context instead of a keyword: a
+  concealment adverb must be attached to an action (`silently exfiltrate`, not
+  `the SDK silently retries`), a secret path must directly follow a read
+  command, `curl | sh` must be command syntax, `sudo` must start a command and
+  `rm -rf` must target root, home or a wildcard.
+- Text that describes or warns about an attack is skipped, so a blocklist of
+  `git reset --hard` is not itself reported.
+- Severity is now tiered by context for `SG-EXEC-004`, `SG-EXFIL-001` and
+  `SG-INJ-004`.
+- Fixed `SG-META-007` to parse comma-separated `allowed-tools`, and to treat a
+  granted shell as covering shell, network and file-write capabilities.
+
+### Added
+
+- A labelled precision corpus (`test/corpus/clean`, `test/corpus/malicious`) and
+  `test/precision.test.js`, run in CI: a clean skill must produce no critical or
+  high finding, and every labelled attack must still be caught.
+- `scripts/measure-precision.js` (`npm run precision`) to reproduce the
+  measurement against public skill repositories.
+
+On 66 skills from three public collections (`anthropics/skills`,
+`mattpocock/skills`, `vercel-labs/skills`) findings fell from roughly 400 —
+about 100 of them critical — to 10, with zero critical or high.
+
 ## [0.2.0] - 2026-10-18
 
 Evasion resistance, broader coverage and provenance. This release is a direct
@@ -81,6 +128,8 @@ agent-skill scanner.
 - A test suite covering detection, scoring, reporters, config and the CLI.
 - A generated rule reference in `docs/RULES.md`.
 
-[Unreleased]: https://github.com/AdilSiddiquiHQ/skillguard/compare/v0.2.0...HEAD
+[Unreleased]: https://github.com/AdilSiddiquiHQ/skillguard/compare/v0.3.1...HEAD
+[0.3.1]: https://github.com/AdilSiddiquiHQ/skillguard/compare/v0.3.0...v0.3.1
+[0.3.0]: https://github.com/AdilSiddiquiHQ/skillguard/compare/v0.2.0...v0.3.0
 [0.2.0]: https://github.com/AdilSiddiquiHQ/skillguard/compare/v0.1.0...v0.2.0
 [0.1.0]: https://github.com/AdilSiddiquiHQ/skillguard/releases/tag/v0.1.0

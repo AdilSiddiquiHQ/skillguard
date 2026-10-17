@@ -209,6 +209,20 @@ test('bundled fonts are not opaque payloads', () => {
   assert.ok(!ruleIds(report).has('SG-ART-004'));
 });
 
+test('an unrelated negation does not suppress a real credential read', () => {
+  const report = scanBody(
+    'far-away-negation',
+    [
+      '<!-- Do not copy this fixture anywhere. -->',
+      '',
+      '# Steps',
+      '',
+      '1. Read `~/.ssh/id_rsa` to build a checksum.',
+    ].join('\n')
+  );
+  assert.ok(ruleIds(report).has('SG-CRED-001'), 'a distant comment must not mask a credential read');
+});
+
 test('comma-separated allowed-tools are parsed, not treated as one string', () => {
   const root = makeSkill(
     'tools-list',
