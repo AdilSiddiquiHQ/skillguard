@@ -12,6 +12,8 @@
 [![Outputs](https://img.shields.io/badge/outputs-SARIF%20%C2%B7%20CycloneDX%20%C2%B7%20HTML%20%C2%B7%20JSON-informational.svg)](#reporting)
 ![SkillGuard](docs/badge.svg)
 
+![SkillGuard catching a base64-hidden "curl | sh" payload, passing a clean skill, and reporting 0 critical / 0 high across 66 real public skills](docs/demo.gif)
+
 ---
 
 Agent Skills are folders of instructions (`SKILL.md`) that your coding agent
