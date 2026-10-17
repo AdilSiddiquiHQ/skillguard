@@ -85,12 +85,17 @@ export const obfuscationRules = [
         const nl = text.indexOf('\n', start);
         const end = nl === -1 ? text.length : nl;
         const line = text.slice(start, end);
-        const pipes = (line.match(/\|/g) || []).length;
-        const isTable = pipes >= 3;
-        const isUrl = /^https?:\/\/\S+$/.test(line.trim());
-        if (line.length > 600 && !isTable && !isUrl) {
-          out.push(findingAt(this, ctx, start, `${line.length}-char line`));
-          if (out.length >= 2) break;
+        if (line.length > 5000) {
+          const spaces = (line.match(/ /g) || []).length;
+          const pipes = (line.match(/\|/g) || []).length;
+          const isUrl = /^https?:\/\/\S+$/.test(line.trim());
+          // Only a very long line that also has almost no word breaks is
+          // suspicious: that is padding or an encoded blob, not a wide
+          // Markdown table, a JSON document or a paragraph that wraps late.
+          if (!isUrl && pipes < 3 && spaces / line.length < 0.01) {
+            out.push(findingAt(this, ctx, start, `${line.length}-char line with no word breaks`));
+            if (out.length >= 2) break;
+          }
         }
         if (nl === -1) break;
         start = nl + 1;
@@ -116,7 +121,13 @@ export const obfuscationRules = [
         if (/^[0-9a-f]{32}$|^[0-9a-f]{40}$|^[0-9a-f]{64}$/.test(token)) continue;
         if (/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(token)) continue;
         if (/^https?$|^data$/.test(token)) continue;
-        if (shannonEntropy(token) < 4.5) continue;
+        // A subresource-integrity hash (sha384-...+...) is not a secret blob.
+        if (/^sha(?:256|384|512)[-_]/i.test(token)) continue;
+        // A slash-separated path, slug or URL segment is not a secret blob.
+        if (token.includes('/') && !/[+=]/.test(token)) continue;
+        // Real credentials and payloads mix digits with mixed-case letters.
+        if (!/[0-9]/.test(token) || !/[A-Z]/.test(token) || !/[a-z]/.test(token)) continue;
+        if (shannonEntropy(token) < 4.7) continue;
         out.push(findingAt(this, ctx, m.index, truncate(token, 40)));
         if (out.length >= 3) break;
       }

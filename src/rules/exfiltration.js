@@ -4,25 +4,57 @@
  * (b) an outbound network sink.
  */
 
-import { findingAt } from './helpers.js';
+import { eachMatch, findingAt, lineAt } from './helpers.js';
 
 export const exfiltrationRules = [
   {
     id: 'SG-EXFIL-001',
     title: 'Uploads data to a remote endpoint',
-    severity: 'high',
+    severity: 'medium',
     confidence: 'medium',
     category: 'exfiltration',
     owasp: 'AST04',
-    description: 'Sends a request body or uploads a file to a remote host. Combined with credential access this is data theft.',
+    description:
+      'Sends a request body or uploads a file to an external host, or uploads credentials and local files. A relative path or a localhost API call is not reported.',
     remediation: 'State exactly what is sent and to which host. Prefer hosts the user configured themselves.',
-    patterns: [
-      /\b(?:curl|wget)\b[^\n]{0,200}(?:--data(?:-raw|-binary|-urlencode)?\b|--upload-file\b|--post-data\b|--post-file\b|\s-d\s|\s-F\s|\s-T\s)/gi,
-      /\b(?:requests|httpx)\.(?:post|put|patch)\s*\(/g,
-      /\bfetch\s*\([^)]*method\s*:\s*['"](?:POST|PUT|PATCH)['"]/gi,
-      /\bInvoke-(?:RestMethod|WebRequest)\b[^\n]{0,120}-Method\s+(?:Post|Put|Patch)/gi,
-      /\bhttp\.client\b|\bnet\/http\b[^\n]{0,40}NewRequest/gi,
-    ],
+    check(ctx) {
+      const text = ctx.text;
+      const sinks = [
+        /\b(?:curl|wget)\b[^\n]{0,200}(?:--data(?:-raw|-binary|-urlencode)?|--upload-file|--post-data|--post-file|\s-d\s|\s-F\s|\s-T\s)/gi,
+        /\b(?:requests|httpx)\.(?:post|put|patch)\s*\(/gi,
+        /\bfetch\s*\([^)]*method\s*:\s*['"](?:POST|PUT|PATCH)['"]/gi,
+        /\bInvoke-(?:RestMethod|WebRequest)\b[^\n]{0,120}-Method\s+(?:Post|Put|Patch)/gi,
+        /\bhttp\.client\b|\bnet\/http\b[^\n]{0,40}NewRequest/gi,
+      ];
+      const external = /\bhttps?:\/\/(?!localhost|127\.0\.0\.1|0\.0\.0\.0|\[::1\])/i;
+      // A credential, a local secret file, or a `$SECRET` variable. A plain
+      // API call that passes a key in a header is not exfiltration.
+      const sensitive =
+        /(?:\.env\b|\.ssh\b|\.aws\b|credentials|id_rsa|\$HOME|~\/|\$\{?[A-Z_]*(?:SECRET|TOKEN|PASSWORD|API[_-]?KEY|PRIVATE[_-]?KEY|CREDENTIAL)[A-Z_]*\}?)/i;
+
+      const out = [];
+      const seen = new Set();
+      for (const re of sinks) {
+        for (const { index, match } of eachMatch(re, text)) {
+          if (seen.has(index)) continue;
+          seen.add(index);
+          const line = lineAt(text, index);
+          const hasSensitive = sensitive.test(line);
+          const hasExternal = external.test(line);
+          if (!hasSensitive && !hasExternal) continue;
+          out.push(
+            findingAt(this, ctx, index, match[0], {
+              severity: hasSensitive ? 'high' : 'medium',
+              description: hasSensitive
+                ? 'Uploads credentials or local files over the network.'
+                : 'Uploads data to an external host. Confirm the destination and the payload are intended.',
+            })
+          );
+          if (out.length >= 5) break;
+        }
+      }
+      return out;
+    },
   },
   {
     id: 'SG-EXFIL-002',
@@ -108,7 +140,10 @@ export const exfiltrationRules = [
     description: 'Builds a DNS lookup from computed data, a classic low-and-slow exfiltration channel.',
     remediation: 'Remove dynamic DNS lookups that embed data.',
     patterns: [
-      /\b(?:dig|nslookup|host|Resolve-DnsName)\b[^\n]{0,100}(?:\$\(|`|\$\{)/gi,
+      /\b(?:dig|nslookup|Resolve-DnsName)\b[^\n]{0,120}(?:\$\(|`|\$\{)/gi,
+      // "host" is also an ordinary English word, so require command syntax:
+      // the tool, then a domain, then a computed substitution.
+      /(?:^|[\n;|&`$])\s*host\s+[a-z0-9][a-z0-9.-]*\.[a-z]{2,}[^\n]{0,80}(?:\$\(|`|\$\{)/gim,
     ],
   },
 ];

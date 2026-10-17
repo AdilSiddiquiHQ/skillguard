@@ -46,8 +46,11 @@ export const supplyChainRules = [
     description: 'Pulls scripts from raw repositories, gists or paste services while running. Content can change after review.',
     remediation: 'Inline or vendor the code so what the user reviewed is what runs.',
     patterns: [
-      /\b(?:curl|wget|iwr|Invoke-WebRequest|fetch|requests\.get)\b[^\n]{0,160}(?:raw\.githubusercontent\.com|gist\.githubusercontent\.com|codeload\.github\.com)/gi,
-      /\b(?:curl|wget)\b[^\n]{0,160}(?:pastebin\.com|paste\.ee|ghostbin|termbin\.com|0x0\.st|hastebin)/gi,
+      // Fetching a *document* (a spec, a README) is normal; fetching a script
+      // or piping remote content into an interpreter is not.
+      /\b(?:curl|wget|iwr|Invoke-WebRequest|fetch|requests\.get)\b[^\n]{0,160}(?:raw\.githubusercontent\.com|gist\.githubusercontent\.com|codeload\.github\.com)[^\n]{0,120}\.(?:sh|bash|zsh|py|js|mjs|cjs|ts|rb|pl|ps1|bat|cmd|exe|bin)\b/gi,
+      /\b(?:curl|wget)\b[^\n]{0,160}(?:raw\.githubusercontent\.com|gist\.githubusercontent\.com)[^\n]{0,120}\|\s*(?:sh|bash|zsh|python3?|node|perl|ruby)\b/gi,
+      /\b(?:curl|wget)\b[^\n]{0,160}(?:pastebin\.com|paste\.ee|ghostbin|termbin\.com|0x0\.st|hastebin)[^\n]{0,120}(?:\|\s*(?:sh|bash|python3?|node)|-o\s+\S+\.(?:sh|py|js|bin|exe))/gi,
     ],
   },
   {
@@ -129,7 +132,10 @@ export const supplyChainRules = [
       'Invokes a compiler or linker to build a library from embedded source, then loads it. This is a documented technique for shipping a payload as a harmless-looking string and a way to evade review entirely.',
     remediation: 'Ship source the agent interprets, never a build step that produces a binary at runtime.',
     patterns: [
-      /\b(?:gcc|clang|cc|zig\s+cc|g\+\+)\b[^\n]{0,120}(?:-shared|-fPIC|-o\s|\.c\b|\.so\b)/gi,
+      // Require a real compile invocation: a C-family source file, or an
+      // output artifact. A quoted list of flags in a Python array is not one.
+      /\b(?:gcc|clang|cc|g\+\+|zig\s+cc)\b[^\n]{0,160}[^\s"'`]\.(?:c|cc|cpp|cxx)\b/gi,
+      /\b(?:gcc|clang|cc|g\+\+|zig\s+cc)\b[^\n]{0,160}-o\s*['"]?[^\s"',]+\.(?:so|dylib|dll|o)\b/gi,
       /\b(?:cargo|rustc|go\s+build)\b[^\n]{0,80}--(?:release|target)/gi,
       /\b(?:cc|gcc|clang)\b[^\n]{0,60}<<['"]?\w*['"]?[\s\S]{0,200}/g,
     ],

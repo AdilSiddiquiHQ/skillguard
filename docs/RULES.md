@@ -21,7 +21,7 @@ A skill's score is `min(100, Σ weight × confidence)`, where confidence is `hig
 | `SG-INJ-001` | high | AST01 — Malicious or injection-bearing instructions | Attempts to override prior instructions |
 | `SG-INJ-002` | high | AST01 — Malicious or injection-bearing instructions | Persona hijack or jailbreak phrasing |
 | `SG-INJ-003` | critical | AST01 — Malicious or injection-bearing instructions | Instructions to conceal activity from the user |
-| `SG-INJ-004` | critical | AST01 — Malicious or injection-bearing instructions | Instructions to bypass approvals or safety checks |
+| `SG-INJ-004` | high | AST01 — Malicious or injection-bearing instructions | Instructions to bypass approvals or safety checks |
 | `SG-INJ-005` | medium | AST01 — Malicious or injection-bearing instructions | Possible trigger phrase or conditional backdoor |
 | `SG-INJ-006` | high | AST01 — Malicious or injection-bearing instructions | Attempts to reveal or leak the system prompt |
 | `SG-INJ-007` | high | AST01 — Malicious or injection-bearing instructions | Invisible or zero-width characters inside instructions |
@@ -52,7 +52,7 @@ Tells the agent to hide what it is doing, or to act without telling the user. Le
 
 ### `SG-INJ-004` — Instructions to bypass approvals or safety checks
 
-**Severity:** critical · **Confidence:** high · **Category:** injection · **OWASP:** AST01
+**Severity:** high · **Confidence:** high · **Category:** injection · **OWASP:** AST01
 
 Asks the agent to skip confirmation, disable guardrails, or auto-approve actions. This removes the human control that keeps agents safe.
 
@@ -87,7 +87,7 @@ Contains zero-width or bidirectional control characters. These can hide instruct
 | Rule | Severity | OWASP | What it detects |
 |---|---|---|---|
 | `SG-CRED-001` | critical | AST03 — Credential and secret access | Access to sensitive credential files |
-| `SG-CRED-002` | high | AST03 — Credential and secret access | Reads secret environment variables |
+| `SG-CRED-002` | high | AST03 — Credential and secret access | Prints or forwards a secret environment variable |
 | `SG-CRED-003` | medium | AST03 — Credential and secret access | Broad environment dump |
 | `SG-CRED-004` | high | AST03 — Credential and secret access | Access to the SSH agent or git credential helper |
 
@@ -95,23 +95,23 @@ Contains zero-width or bidirectional control characters. These can hide instruct
 
 **Severity:** critical · **Confidence:** high · **Category:** credentials · **OWASP:** AST03
 
-References files that hold credentials, private keys or session tokens (SSH, AWS, .env, npm, Docker, browser cookies, keychains).
+Reads, copies or transmits files that hold credentials, private keys or session tokens (SSH, AWS, .env, npm, Docker, browser cookies, keychains).
 
 **Fix:** Never read credential stores. If a secret is required, ask the user to provide it explicitly via an environment variable you document.
 
-### `SG-CRED-002` — Reads secret environment variables
+### `SG-CRED-002` — Prints or forwards a secret environment variable
 
 **Severity:** high · **Confidence:** high · **Category:** credentials · **OWASP:** AST03
 
-Reads or prints environment variables that typically contain secrets (tokens, API keys, passwords).
+Prints, dumps or pipes an environment variable that holds a secret (token, API key, password). Naming such a variable is normal; echoing or forwarding its value is not.
 
-**Fix:** Reference only the specific, non-secret variables you need. Never enumerate the environment or match variables by wildcard.
+**Fix:** Never print or transmit secret variables. Read only the specific, non-secret values you need, and keep secret handling inside the API client.
 
 ### `SG-CRED-003` — Broad environment dump
 
 **Severity:** medium · **Confidence:** medium · **Category:** credentials · **OWASP:** AST03
 
-Dumps the entire environment, which commonly leaks secrets into agent transcripts and logs.
+Dumps, prints or forwards the entire environment, which commonly leaks secrets into agent transcripts and logs.
 
 **Fix:** Read individual variables that are documented and non-sensitive.
 
@@ -127,7 +127,7 @@ Uses the SSH agent socket or git credential helpers to obtain credentials the us
 
 | Rule | Severity | OWASP | What it detects |
 |---|---|---|---|
-| `SG-EXFIL-001` | high | AST04 — Data exfiltration | Uploads data to a remote endpoint |
+| `SG-EXFIL-001` | medium | AST04 — Data exfiltration | Uploads data to a remote endpoint |
 | `SG-EXFIL-002` | critical | AST04 — Data exfiltration | Posts to a known exfiltration sink |
 | `SG-EXFIL-003` | high | AST04 — Data exfiltration | Encodes data before sending it |
 | `SG-EXFIL-004` | critical | AST04 — Data exfiltration | Pipes secrets straight into the network |
@@ -136,9 +136,9 @@ Uses the SSH agent socket or git credential helpers to obtain credentials the us
 
 ### `SG-EXFIL-001` — Uploads data to a remote endpoint
 
-**Severity:** high · **Confidence:** medium · **Category:** exfiltration · **OWASP:** AST04
+**Severity:** medium · **Confidence:** medium · **Category:** exfiltration · **OWASP:** AST04
 
-Sends a request body or uploads a file to a remote host. Combined with credential access this is data theft.
+Sends a request body or uploads a file to an external host, or uploads credentials and local files. A relative path or a localhost API call is not reported.
 
 **Fix:** State exactly what is sent and to which host. Prefer hosts the user configured themselves.
 
@@ -189,7 +189,7 @@ Builds a DNS lookup from computed data, a classic low-and-slow exfiltration chan
 | `SG-EXEC-001` | critical | AST05 — Unsafe or destructive execution | Remote code executed through a pipe |
 | `SG-EXEC-002` | high | AST05 — Unsafe or destructive execution | Dynamic code evaluation |
 | `SG-EXEC-003` | critical | AST05 — Unsafe or destructive execution | Destructive filesystem command |
-| `SG-EXEC-004` | high | AST05 — Unsafe or destructive execution | Privilege escalation |
+| `SG-EXEC-004` | medium | AST05 — Unsafe or destructive execution | Privilege escalation |
 | `SG-EXEC-005` | high | AST05 — Unsafe or destructive execution | Persistence or system modification |
 | `SG-EXEC-006` | high | AST05 — Unsafe or destructive execution | Destructive or history-rewriting git command |
 | `SG-EXEC-007` | critical | AST05 — Unsafe or destructive execution | Disables logging or security controls |
@@ -221,9 +221,9 @@ Deletes or overwrites data at a broad scope (root, home, wildcard, block devices
 
 ### `SG-EXEC-004` — Privilege escalation
 
-**Severity:** high · **Confidence:** high · **Category:** execution · **OWASP:** AST05
+**Severity:** medium · **Confidence:** high · **Category:** execution · **OWASP:** AST05
 
-Requests elevated privileges or changes permissions broadly.
+Runs a command with elevated privileges. A documented install step is an advisory; escalating to modify system state is serious.
 
 **Fix:** Skills should run with the least privilege needed and never elevate silently.
 
@@ -756,4 +756,4 @@ Contains a compressed archive whose contents are not visible during review.
 
 ---
 
-_Generated from SkillGuard v0.2.0._
+_Generated from SkillGuard v0.3.0._

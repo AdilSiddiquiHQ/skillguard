@@ -1,0 +1,2 @@
+﻿This file begins with a UTF-8 byte-order mark, which is normal and must not be
+reported as a hidden zero-width character. The body itself is plain text.

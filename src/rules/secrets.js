@@ -4,6 +4,34 @@
  * the moment the skill is shared — which is the point of a skill.
  */
 
+import { eachMatch, findingAt } from './helpers.js';
+import { shannonEntropy } from '../util.js';
+
+/** Values that are obviously documentation placeholders, not live secrets. */
+const PLACEHOLDER =
+  /^(?:your|my|the|some|an?|example|sample|test|dummy|fake|placeholder|changeme|change[_-]?me|redacted|todo|fixme|nota?real|x{3,}|\*+|\.+|_{2,}|-{2,}|<[^>]*>|\[[^\]]*\]|\{[^}]*\}|\$\{[^}]*\}|%[sdv]|null|none|undefined|true|false|value|string|secret|password|token|apikey|api[_-]?key|key|abc+|\d+)$/i;
+
+const WORDLIKE = /^[a-z][a-z_-]*$/i;
+
+/** True when `value` looks like a placeholder rather than a real credential. */
+export function looksLikePlaceholder(value) {
+  const s = String(value).trim();
+  if (s.length < 8) return true;
+  if (s.includes(' ') || s.includes('\t')) return true;
+  if (/\.\.\.|…/.test(s)) return true;
+  if (PLACEHOLDER.test(s)) return true;
+  if (/\b(?:your|insert|replace|redacted|example|sample|placeholder|here)\b/i.test(s)) return true;
+  if (WORDLIKE.test(s)) return true;
+  if (!/[A-Za-z]/.test(s)) return true;
+  if (/^(?:process\.env|os\.environ|env\.|getenv|import\.meta)/i.test(s)) return true;
+
+  // A real secret mixes character classes or is a long random string.
+  const classes = [/[a-z]/, /[A-Z]/, /[0-9]/, /[^A-Za-z0-9]/].filter((r) => r.test(s)).length;
+  if (classes >= 3) return false;
+  if (s.length >= 20 && shannonEntropy(s) >= 3.4) return false;
+  return true;
+}
+
 export const secretRules = [
   {
     id: 'SG-SEC-001',
@@ -56,9 +84,17 @@ export const secretRules = [
     redact: true,
     description: 'Assigns a literal value to a password, secret or token field.',
     remediation: 'Read the value from the environment or a secret manager; never commit it.',
-    patterns: [
-      /\b(?:password|passwd|pwd|secret|api[_-]?key|access[_-]?token|auth[_-]?token|client[_-]?secret)\s*[:=]\s*['"`][^'"`\s]{6,}['"`]/gi,
-    ],
+    check(ctx) {
+      const re =
+        /\b(?:password|passwd|pwd|secret|api[_-]?key|access[_-]?token|auth[_-]?token|client[_-]?secret|private[_-]?key)\s*[:=]\s*(['"`])([^'"`\n]{6,})\1/gi;
+      const out = [];
+      for (const { index, match } of eachMatch(re, ctx.text)) {
+        if (looksLikePlaceholder(match[2])) continue;
+        out.push(findingAt(this, ctx, index, match[0]));
+        if (out.length >= 5) break;
+      }
+      return out;
+    },
   },
   {
     id: 'SG-SEC-004',

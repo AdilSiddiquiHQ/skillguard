@@ -1,6 +1,6 @@
 {
   "name": "skillguard",
-  "version": "0.2.0",
+  "version": "0.3.0",
   "description": "Evasion-resistant security scanner for AI agent skills, plugins and MCP servers. Trivy for Agent Skills.",
   "type": "module",
   "bin": {
@@ -26,6 +26,7 @@
     "test": "node --test",
     "scan": "node bin/skillguard.js",
     "docs": "node scripts/generate-rules-doc.js",
+    "precision": "node scripts/measure-precision.js",
     "selfcheck": "node bin/skillguard.js examples --fail-on none"
   },
   "keywords": [

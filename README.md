@@ -97,7 +97,7 @@ A clean skill, for contrast:
 ```
 $ skillguard examples/conventional-commit
 
-  SkillGuard 0.2.0  · 75 rules · agent skills security scanner
+  SkillGuard 0.3.0  · 75 rules · agent skills security scanner
 
   ✔ examples/conventional-commit  · PASS  score 0/100
     ░░░░░░░░░░░░░░░░░░░░
@@ -128,6 +128,54 @@ $ skillguard examples/cleanup-trap
 ```
 
 Secrets are **redacted in the output**, so a scan log never becomes a new leak.
+
+## It stays quiet on real skills
+
+A scanner that cries wolf gets uninstalled, so precision is measured here, not
+asserted. The corpus is three public collections of Agent Skills — 66 skills that
+people actually ship:
+
+```bash
+git clone --depth 1 https://github.com/anthropics/skills
+git clone --depth 1 https://github.com/mattpocock/skills
+git clone --depth 1 https://github.com/vercel-labs/skills
+node scripts/measure-precision.js anthropics_skills mattpocock_skills vercel-labs_skills
+```
+
+Before this pass, those 66 skills produced **~400 findings, about 100 of them
+critical**. An ordinary Markdown table was a "long line", the English word `host`
+was "DNS exfiltration", documenting `$ANTHROPIC_API_KEY` was "reading secrets",
+`sudo` in an install guide was "privilege escalation", and a leading byte-order
+mark was a "hidden character". Almost none were true positives.
+
+The same 66 skills now produce:
+
+```
+targets:           66
+findings:          10
+findings / skill:  0.15
+severity:          0 critical, 0 high, 8 medium, 1 low, 1 info
+result: quiet on this corpus
+```
+
+All ten are honest advisories — global `brew` / `npm -g` installs, a documented
+`sudo` step, one bundled PDF, one upstream folder/name mismatch — not alarms.
+Three rules keep it that way, and they are worth copying if you write your own:
+
+1. **Context, not keywords.** A concealment adverb counts only when attached to
+   an action (`silently exfiltrate`, not `the SDK silently retries`). A secret
+   file counts only when a read command sits directly in front of it
+   (`cat ~/.ssh/id_rsa`, not "the `.env` file holds secrets").
+2. **Defensive text is not an attack.** A blocklist that quotes
+   `git reset --hard`, or a guide that says *never run* `curl | sh`, is doing the
+   opposite of what is being detected. Those are skipped.
+3. **Command syntax, not prose.** `sudo` must start a command, `eval` must be a
+   call, and `rm -rf` must target root, home or a wildcard — not
+   `/workspace/reports`.
+
+`test/precision.test.js` locks this in: it scans a labelled corpus of realistic
+clean skills and real attacks and fails the build if a clean skill produces a
+critical or high finding, or if an attack stops being caught.
 
 ## Install
 
@@ -410,7 +458,7 @@ No `npm install` step is needed — there are no dependencies.
 # .pre-commit-config.yaml
 repos:
   - repo: https://github.com/AdilSiddiquiHQ/skillguard
-    rev: v0.2.0
+    rev: v0.3.0
     hooks:
       - id: skillguard
 ```
@@ -456,8 +504,10 @@ SkillGuard is honest about what it is:
   evasion. A payload encoded with a scheme it does not implement, or one that
   only becomes malicious at runtime, can still slip past. It raises the floor;
   it does not prove safety.
-- **It reads text, not intent.** A legitimate skill that documents a dangerous
-  command will be flagged. Use `allow` and `ignore` for known-good patterns.
+- **It reads text, not intent.** Rules are context-aware — a blocked command, a
+  quoted example or an install guide is treated differently from an instruction
+  — but a legitimate skill can still be flagged. Use `allow` and `ignore` for
+  known-good patterns.
 - **Prompt injection is not solved.** An instruction that convinces the *model*
   through sound argument is indistinguishable from an instruction that
   convinces it maliciously. SkillGuard flags the mechanical tells; judgement
@@ -476,6 +526,7 @@ becomes a fixture is exactly how this project is meant to improve.
 - [x] Rule pack for MCP server manifests, plugin hooks and agent config files
 - [x] CycloneDX SBOM output
 - [x] Ed25519 signing and verification of scan attestations
+- [x] Precision corpus + CI gate (zero critical/high on legitimate public skills)
 - [ ] A registry of scanned skills with reproducible attestations
 - [ ] Language-native parsing for Python/JS/TS beyond pattern matching
 - [ ] Optional LLM-assisted deep scan (bring your own key), opt-in only

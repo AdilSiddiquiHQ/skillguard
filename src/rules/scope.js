@@ -111,14 +111,15 @@ export const scopeRules = [
     confidence: 'medium',
     category: 'metadata',
     owasp: 'AST08',
+    targets: 'skill',
     description:
       'Claims to run on every task or always take effect, which makes the skill permanently active beyond the user\'s intent.',
     remediation: 'Make the skill apply only when its trigger conditions are clearly met.',
     patterns: [
-      /\balways\s+(?:use|run|apply|invoke|execute|load)\s+this\s+skill\b/gi,
-      /\b(?:on|for)\s+every\s+(?:task|prompt|request|message|conversation|interaction)\b/gi,
-      /\b(?:before|after)\s+(?:every|any|all)\s+(?:response|answer|reply|task)\b/gi,
-      /\balways\s+active\b|\bpermanently\s+enabled\b/gi,
+      /\balways\s+(?:use|run|apply|invoke|execute|load|call)\s+(?:this|the)\s+(?:skill|command)\b/gi,
+      /\bautomatically\s+(?:run|apply|invoke|load|use)\s+(?:this|the)\s+skill\b/gi,
+      /\b(?:on|for)\s+every\s+(?:task|prompt|request|message|conversation|interaction)\b[^\n]{0,40}\b(?:you\s+(?:must|should|will)|the\s+agent|this\s+skill|always)\b/gi,
+      /\balways\s+active\b|\bpermanently\s+enabled\b|\balways\s+loaded\b/gi,
     ],
   },
   {
@@ -179,23 +180,28 @@ export const scopeRules = [
       if (rawTools === undefined || rawTools === null) return [];
       const granted = new Set(
         (Array.isArray(rawTools) ? rawTools : [rawTools])
-          .map((t) => String(t).trim().toLowerCase().replace(/\s*\(.*\)\s*$/, ''))
+          // `allowed-tools: Read, Bash` is a comma-separated scalar in YAML, not
+          // an array. Treat both the same, and drop any `Tool(pattern)` scoping.
+          .flatMap((t) => String(t).split(','))
+          .map((t) => t.trim().toLowerCase().replace(/\s*\(.*\)\s*$/, '').replace(/^["']|["']$/g, ''))
           .filter(Boolean)
       );
       if (granted.size === 0) return [];
       const hasAny = (...names) => names.some((n) => granted.has(n));
+      const hasShell = hasAny('bash', 'shell', 'execute', 'exec');
 
       const body = String(skill.body || '');
       const needs = [];
-      if (/\b(?:bash|sh\s+-c|curl|wget|npm\s|pnpm\s|pip3?\s|sudo\s|chmod\s|rm\s+-|git\s)/i.test(body) &&
-        !hasAny('bash', 'shell', 'execute', 'exec')) {
+      // A granted shell already covers shell, network and file writes: the
+      // agent can run `curl`, `cp` or a redirect through it. Only ask for a
+      // dedicated tool when no shell is granted.
+      if (/\b(?:bash|sh\s+-c|curl|wget|npm\s|pnpm\s|pip3?\s|sudo\s|chmod\s|rm\s+-|git\s)/i.test(body) && !hasShell) {
         needs.push('shell execution');
       }
-      if (/https?:\/\/[^\s)]+/i.test(body) && !hasAny('webfetch', 'websearch', 'fetch', 'browser', 'network')) {
+      if (/https?:\/\/[^\s)]+/i.test(body) && !hasShell && !hasAny('webfetch', 'websearch', 'fetch', 'browser', 'network')) {
         needs.push('network access');
       }
-      if (/(?:^|\n)\s*(?:>|tee\s|cat\s*>|cp\s|mv\s|mkdir\s)/i.test(body) &&
-        !hasAny('write', 'edit', 'notebookedit')) {
+      if (/(?:^|\n)\s*(?:>|tee\s|cat\s*>|cp\s|mv\s|mkdir\s)/i.test(body) && !hasShell && !hasAny('write', 'edit', 'notebookedit')) {
         needs.push('file writes');
       }
       if (needs.length === 0) return [];

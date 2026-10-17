@@ -38,6 +38,9 @@ const OPAQUE_EXT = new Set([
 
 const KNOWN_IMAGE_EXT = new Set(['.png', '.jpg', '.jpeg', '.gif', '.svg', '.webp', '.ico', '.bmp', '.avif']);
 
+/** Fonts are opaque but benign and extremely common in design skills. */
+const BENIGN_ASSET_EXT = new Set(['.woff', '.woff2', '.ttf', '.otf', '.eot']);
+
 function fileName(path) {
   return String(path).split('/').pop().toLowerCase();
 }
@@ -159,6 +162,7 @@ export const artifactRules = [
       for (const file of ctx.files || []) {
         const ext = extensionOf(file.path);
         if (KNOWN_IMAGE_EXT.has(ext)) continue;
+        if (BENIGN_ASSET_EXT.has(ext)) continue;
         if (!OPAQUE_EXT.has(ext)) continue;
         out.push(
           findingAt(this, ctx, 0, `${file.path} (${ext})`, {

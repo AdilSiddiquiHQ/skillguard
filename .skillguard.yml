@@ -1,8 +1,15 @@
 # SkillGuard configuration for this repository.
 #
-# Note: this repo deliberately ships malicious skills under
-# examples/cleanup-trap and examples/evasion as fixtures, so scanning the whole
-# repo (`.`) is expected to fail. CI scans specific paths instead.
+# This repo deliberately ships malicious skills under examples/cleanup-trap and
+# examples/evasion as fixtures, so scanning the whole repo (`.`) is expected to
+# report them — that is the point of the fixtures.
+#
+# `test/corpus` is excluded: it is labelled test data (clean skills and attacks)
+# used by `test/precision.test.js`, and scoring it here would only flood the
+# code-scanning alerts with duplicates of the same fixtures.
+
+exclude:
+  - test/corpus/**
 
 fail-on: high
 

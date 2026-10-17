@@ -9,7 +9,7 @@
  * evasion has no legitimate reason to be there.
  */
 
-import { findingAt } from './helpers.js';
+import { findingAt, truncate } from './helpers.js';
 import { detectPadding, findConfusables } from '../normalize.js';
 
 export const evasionRules = [
@@ -116,9 +116,36 @@ export const evasionRules = [
     description:
       'Instruction-like text is hidden inside an HTML or Markdown comment. The rendered skill looks benign while the model still reads the comment.',
     remediation: 'Remove hidden comments. All instructions belong in the visible body.',
-    patterns: [
-      /<!--[\s\S]{0,800}?(?:ignore|instruction|system|prompt|you\s+must|do\s+not\s+tell|send|curl|bash)[\s\S]{0,800}?-->/gi,
-      /\[\/\/\]:\s*#\s*\([^)]{0,200}(?:ignore|instruction|send|curl|you must)[^)]{0,200}\)/gi,
-    ],
+    check(ctx) {
+      const text = ctx.text;
+      // Only flag text that reads like an instruction *inside the comment*.
+      const KEY =
+        /(?:\b(?:ignore|disregard|override)\b[^.\n]{0,30}\b(?:previous|prior|above|instructions?)\b)|(?:\byou\s+must\b)|(?:\bdo\s+not\s+(?:tell|inform|mention)\b)|(?:system\s+prompt)|(?:\bexfiltrat\w*)|(?:\|\s*(?:bash|sh|zsh)\b)|(?:\bhidden\s+instruction)/i;
+      const out = [];
+
+      // Each comment is tested on its own body, so a benign comment followed by
+      // an unrelated `curl` later in the file is not mistaken for a hidden one.
+      for (const { index, match } of comments(/<!--([\s\S]*?)-->/g, text)) {
+        if (!KEY.test(match[1])) continue;
+        out.push(findingAt(this, ctx, index, truncate(match[0], 90)));
+        if (out.length >= 3) return out;
+      }
+      for (const { index, match } of comments(/\[\/\/\]:\s*#\s*\(([^)]*)\)/g, text)) {
+        if (!KEY.test(match[1])) continue;
+        out.push(findingAt(this, ctx, index, truncate(match[0], 90)));
+        if (out.length >= 3) return out;
+      }
+      return out;
+    },
   },
 ];
+
+function comments(re, text) {
+  const out = [];
+  let m;
+  while ((m = re.exec(text)) !== null) {
+    out.push({ index: m.index, match: m });
+    if (m[0].length === 0) re.lastIndex += 1;
+  }
+  return out;
+}
