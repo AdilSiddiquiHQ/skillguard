@@ -378,6 +378,7 @@ name: SkillGuard
 on: [pull_request]
 
 permissions:
+  actions: read
   contents: read
   security-events: write
 
@@ -393,8 +394,8 @@ jobs:
           fail-on: high
           sarif-file: skillguard.sarif
 
-      - uses: github/codeql-action/upload-sarif@v3
-        if: always()
+      - uses: github/codeql-action/upload-sarif@v4
+        if: always() && (github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository)
         with:
           sarif_file: skillguard.sarif
           category: skillguard
