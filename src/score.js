@@ -31,14 +31,15 @@ export function verdictFor(score, thresholds = DEFAULT_THRESHOLDS, findings = []
 
 export function summarize(skills, thresholds = DEFAULT_THRESHOLDS) {
   const counts = { critical: 0, high: 0, medium: 0, low: 0, info: 0 };
-  let findings = 0;
+  let baselined = 0;
 
   for (const skill of skills) {
-    findings += skill.findings.length;
-    const skillCounts = countBySeverity(skill.findings);
-    for (const key of Object.keys(counts)) counts[key] += skillCounts[key];
+    const skillCounts = skill.counts || countBySeverity(skill.findings.filter((f) => !f.allowed && !f.baselined));
+    for (const key of Object.keys(counts)) counts[key] += skillCounts[key] || 0;
+    baselined += skill.baselinedCount || 0;
   }
 
+  const findings = counts.critical + counts.high + counts.medium + counts.low + counts.info;
   const worstSkillScore = skills.reduce((max, s) => Math.max(max, s.score), 0);
   const failed = skills.filter((s) => s.verdict === 'fail').length;
   const review = skills.filter((s) => s.verdict === 'review').length;
@@ -48,6 +49,7 @@ export function summarize(skills, thresholds = DEFAULT_THRESHOLDS) {
     skills: skills.length,
     findings,
     counts,
+    baselined,
     worstSkillScore,
     failed,
     review,

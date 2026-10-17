@@ -42,6 +42,9 @@ Out of scope:
 - SkillGuard **never executes** the content it scans.
 - SkillGuard redacts secrets in output so reports and CI logs do not leak them.
 - SkillGuard has **zero runtime dependencies**, minimising its own supply chain.
+- Archive and payload handling is **bounded** (entry counts, decompressed size,
+  nesting depth and per-rule match caps) so a crafted target cannot exhaust
+  memory or time. A resource-exhaustion bypass is in scope: report it.
 
 If you find behaviour that violates any of the above, treat it as a
 vulnerability and report it privately.

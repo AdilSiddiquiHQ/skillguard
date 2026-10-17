@@ -13,6 +13,10 @@ import { obfuscationRules } from './obfuscation.js';
 import { scopeRules } from './scope.js';
 import { secretRules } from './secrets.js';
 import { assetRules } from './assets.js';
+import { evasionRules } from './evasion.js';
+import { artifactRules } from './artifacts.js';
+import { mcpRules } from './mcp.js';
+import { pluginRules } from './plugin.js';
 
 export const ALL_RULES = [
   ...injectionRules,
@@ -21,6 +25,10 @@ export const ALL_RULES = [
   ...executionRules,
   ...supplyChainRules,
   ...obfuscationRules,
+  ...evasionRules,
+  ...artifactRules,
+  ...mcpRules,
+  ...pluginRules,
   ...scopeRules,
   ...secretRules,
   ...assetRules,
@@ -35,6 +43,10 @@ export const CATEGORIES = [
   'execution',
   'supply-chain',
   'obfuscation',
+  'evasion',
+  'artifacts',
+  'mcp',
+  'plugin',
   'metadata',
   'secrets',
   'assets',
@@ -54,4 +66,8 @@ export {
   scopeRules,
   secretRules,
   assetRules,
+  evasionRules,
+  artifactRules,
+  mcpRules,
+  pluginRules,
 };

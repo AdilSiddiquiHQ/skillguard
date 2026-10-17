@@ -8,6 +8,7 @@ import { dirname, join, resolve } from 'node:path';
 
 import { parseSimpleYaml } from './frontmatter.js';
 import { DEFAULT_THRESHOLDS } from './score.js';
+import { compilePolicyRules } from './policy.js';
 
 const CONFIG_NAMES = ['.skillguard.yml', '.skillguard.yaml', '.skillguard.json'];
 
@@ -20,6 +21,9 @@ export const DEFAULT_CONFIG = {
   scanAssets: true,
   thresholds: { ...DEFAULT_THRESHOLDS },
   maxFindingsPerRulePerFile: 5,
+  policyRules: [],
+  severityOverrides: {},
+  baseline: null,
 };
 
 function normalize(raw) {
@@ -52,6 +56,16 @@ function normalize(raw) {
     if (typeof thresholds.review === 'number') config.thresholds.review = thresholds.review;
     if (typeof thresholds.fail === 'number') config.thresholds.fail = thresholds.fail;
   }
+
+  config.policyRules = compilePolicyRules(raw);
+
+  const overrides = raw['severity-overrides'] || raw.severityOverrides;
+  if (overrides && typeof overrides === 'object' && !Array.isArray(overrides)) {
+    config.severityOverrides = { ...overrides };
+  }
+
+  const baseline = raw.baseline;
+  if (typeof baseline === 'string' && baseline) config.baseline = baseline;
 
   return config;
 }
@@ -115,5 +129,23 @@ allow:
 thresholds:
   review: 30
   fail: 70
+
+# Only report and fail on findings that are NOT in this baseline file.
+# Generate one with: skillguard . --write-baseline .skillguard-baseline.json
+# baseline: .skillguard-baseline.json
+
+# Raise or lower the severity of any built-in rule.
+# severity-overrides:
+#   SG-EXEC-008: low
+
+# Project-specific rules, evaluated exactly like the built-in ones.
+# rules:
+#   - id: SG-POLICY-001
+#     title: Internal registry must not be referenced
+#     severity: high
+#     pattern: 'https://npm\\.internal\\.'
+#     message: Skills must resolve dependencies from the public registry.
+#     remediation: Remove the internal registry reference.
+#     flags: gi
 `;
 }

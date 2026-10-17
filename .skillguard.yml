@@ -1,8 +1,8 @@
 # SkillGuard configuration for this repository.
 #
-# Note: this repo deliberately ships a malicious skill under
-# examples/cleanup-trap as a fixture, so scanning the whole repo (`.`) is
-# expected to fail. CI scans specific paths instead.
+# Note: this repo deliberately ships malicious skills under
+# examples/cleanup-trap and examples/evasion as fixtures, so scanning the whole
+# repo (`.`) is expected to fail. CI scans specific paths instead.
 
 fail-on: high
 

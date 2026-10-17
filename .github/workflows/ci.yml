@@ -41,12 +41,54 @@ jobs:
           fi
           echo "SkillGuard correctly flagged the malicious fixture."
 
-      - name: Verify SARIF and badge outputs
+      - name: Adversarial evasion suite (expected to fail)
+        run: |
+          set +e
+          node bin/skillguard.js examples/evasion --fail-on high --json > /tmp/evasion.json 2>/dev/null
+          status=$?
+          set -e
+          if [ "$status" -ne 1 ]; then
+            echo "::error::evasion fixtures must fail the gate (got exit $status)"
+            exit 1
+          fi
+          node -e "
+            const r = require('/tmp/evasion.json');
+            const ids = r.skills.flatMap(s => s.findings.map(f => f.ruleId));
+            const evasions = r.skills.flatMap(s => s.evasions);
+            const need = ['SG-EVA-001', 'SG-EVA-003', 'SG-EXEC-001', 'SG-INJ-001'];
+            for (const id of need) if (!ids.includes(id)) { console.error('missing ' + id); process.exit(1); }
+            for (const e of ['base64', 'zero-width']) if (!evasions.includes(e)) { console.error('missing evasion ' + e); process.exit(1); }
+            console.log('evasion detection verified');
+          "
+
+      - name: Baseline round-trip
+        run: |
+          node bin/skillguard.js examples/cleanup-trap --write-baseline /tmp/base.json --force > /dev/null
+          node bin/skillguard.js examples/cleanup-trap --baseline /tmp/base.json --quiet
+          node bin/skillguard.js examples/cleanup-trap --baseline /tmp/base.json --json \
+            | node -e "let d='';process.stdin.on('data',c=>d+=c).on('end',()=>{const r=JSON.parse(d);if(r.summary.findings!==0){console.error('baseline did not clear findings');process.exit(1)}})"
+
+      - name: Sign and verify an attestation
+        run: |
+          node bin/skillguard.js keygen --out /tmp/sgkeys > /dev/null
+          node bin/skillguard.js sign examples/conventional-commit --key /tmp/sgkeys/skillguard.key --out /tmp/att.json > /dev/null
+          node bin/skillguard.js verify /tmp/att.json --key /tmp/sgkeys/skillguard.pub
+
+      - name: Verify SARIF, badge, HTML and SBOM outputs
         run: |
           node bin/skillguard.js examples/conventional-commit --fail-on none \
-            --sarif /tmp/skillguard.sarif --badge /tmp/skillguard-badge.svg --json > /dev/null
-          node -e "const s=require('/tmp/skillguard.sarif'); if(s.version!=='2.1.0') process.exit(1)"
+            --sarif /tmp/skillguard.sarif --badge /tmp/skillguard-badge.svg \
+            --html /tmp/skillguard.html --sbom /tmp/skillguard.sbom.json --json > /dev/null
+          node -e "
+            const fs = require('fs');
+            const sarif = JSON.parse(fs.readFileSync('/tmp/skillguard.sarif', 'utf8'));
+            if (sarif.version !== '2.1.0') { console.error('bad SARIF'); process.exit(1); }
+            const bom = JSON.parse(fs.readFileSync('/tmp/skillguard.sbom.json', 'utf8'));
+            if (bom.bomFormat !== 'CycloneDX' || bom.specVersion !== '1.6') { console.error('bad SBOM'); process.exit(1); }
+            console.log('SARIF and CycloneDX outputs validated');
+          "
           test -s /tmp/skillguard-badge.svg
+          test -s /tmp/skillguard.html
 
   security:
     name: Self-scan (SARIF)

@@ -1,6 +1,6 @@
 # Rule reference
 
-SkillGuard ships **48 rules** across 9 categories. This file is generated from the source by `node scripts/generate-rules-doc.js`.
+SkillGuard ships **75 rules** across 13 categories. This file is generated from the source by `node scripts/generate-rules-doc.js`.
 
 ## Severity and scoring
 
@@ -259,7 +259,7 @@ Kills processes. Sometimes legitimate, but easy to misuse; confirm scope before 
 
 **Fix:** Target a specific PID the user provided instead of matching process names.
 
-## supply-chain (5)
+## supply-chain (10)
 
 | Rule | Severity | OWASP | What it detects |
 |---|---|---|---|
@@ -268,6 +268,11 @@ Kills processes. Sometimes legitimate, but easy to misuse; confirm scope before 
 | `SG-SC-003` | high | AST06 — Supply-chain risk | Fetches code from a paste or raw-content host at runtime |
 | `SG-SC-004` | medium | AST06 — Supply-chain risk | Runs unpinned packages on the fly |
 | `SG-SC-005` | high | AST06 — Supply-chain risk | Points the package manager at a non-default registry |
+| `SG-SC-006` | high | AST06 — Supply-chain risk | Rewrites package-manager registry configuration |
+| `SG-SC-007` | critical | AST05 — Unsafe or destructive execution | Injects a dynamic library into other processes |
+| `SG-SC-008` | high | AST05 — Unsafe or destructive execution | Compiles and loads code at runtime |
+| `SG-SC-009` | high | AST06 — Supply-chain risk | Disables TLS or certificate verification |
+| `SG-SC-010` | medium | AST06 — Supply-chain risk | Installs software outside the project directory |
 
 ### `SG-SC-001` — Installs dependencies from a URL or VCS
 
@@ -308,6 +313,46 @@ Executes a package without pinning a version (npx -y, uvx, pipx run). The resolv
 Overrides the registry or index URL, which redirects installs to an attacker-controlled source.
 
 **Fix:** Use the default registry. If a mirror is truly required, document it and pin it.
+
+### `SG-SC-006` — Rewrites package-manager registry configuration
+
+**Severity:** high · **Confidence:** high · **Category:** supply-chain · **OWASP:** AST06
+
+Writes a registry or index setting into a package-manager config file (.npmrc, .yarnrc, pip.conf, .gemrc, settings.xml). This is the exact technique used in a documented scanner bypass: every future install silently routes through an attacker-controlled mirror.
+
+**Fix:** Never modify registry configuration from a skill. Use the default registry, or have the user opt in explicitly.
+
+### `SG-SC-007` — Injects a dynamic library into other processes
+
+**Severity:** critical · **Confidence:** high · **Category:** supply-chain · **OWASP:** AST05
+
+Uses LD_PRELOAD, DYLD_INSERT_LIBRARIES or a similar mechanism to inject a library into another process. It hijacks code you did not write and cannot see.
+
+**Fix:** Remove. There is no reason for a skill to inject libraries into other processes.
+
+### `SG-SC-008` — Compiles and loads code at runtime
+
+**Severity:** high · **Confidence:** medium · **Category:** supply-chain · **OWASP:** AST05
+
+Invokes a compiler or linker to build a library from embedded source, then loads it. This is a documented technique for shipping a payload as a harmless-looking string and a way to evade review entirely.
+
+**Fix:** Ship source the agent interprets, never a build step that produces a binary at runtime.
+
+### `SG-SC-009` — Disables TLS or certificate verification
+
+**Severity:** high · **Confidence:** high · **Category:** supply-chain · **OWASP:** AST06
+
+Turns off TLS verification (NODE_TLS_REJECT_UNAUTHORIZED, strict-ssl=false, --insecure, GIT_SSL_NO_VERIFY). This enables man-in-the-middle tampering with everything the agent downloads.
+
+**Fix:** Keep certificate verification on. Fix the underlying trust problem instead of disabling the check.
+
+### `SG-SC-010` — Installs software outside the project directory
+
+**Severity:** medium · **Confidence:** medium · **Category:** supply-chain · **OWASP:** AST06
+
+Installs packages system-wide or globally, changing the environment for every project on the machine and expanding the blast radius of the skill.
+
+**Fix:** Install into a project-local, disposable environment (a virtualenv or node_modules).
 
 ## obfuscation (5)
 
@@ -359,7 +404,198 @@ Contains a random-looking string that may be an encoded payload or an embedded c
 
 **Fix:** Confirm the string is intentional. Replace embedded secrets with environment variables.
 
-## metadata (6)
+## evasion (5)
+
+| Rule | Severity | OWASP | What it detects |
+|---|---|---|---|
+| `SG-EVA-001` | critical | AST07 — Obfuscation | Context-flood or padding attack |
+| `SG-EVA-002` | medium | AST07 — Obfuscation | Homoglyph obfuscation of text |
+| `SG-EVA-003` | critical | AST07 — Obfuscation | Dangerous command recovered from encoded or embedded content |
+| `SG-EVA-004` | critical | AST02 — Untrusted dependency or tool instructions | Agent instructions hidden in encoded or embedded content |
+| `SG-EVA-005` | medium | AST02 — Untrusted dependency or tool instructions | Instructions concealed in HTML or Markdown comments |
+
+### `SG-EVA-001` — Context-flood or padding attack
+
+**Severity:** critical · **Confidence:** high · **Category:** evasion · **OWASP:** AST07
+
+The file contains an enormous run of blank lines or a single giant line. This is the documented trick for pushing a payload past a scanner's truncation limit while it stays invisible to a human scrolling the page.
+
+**Fix:** Remove the padding. If the content is genuinely large, split it into named, reviewable sections.
+
+### `SG-EVA-002` — Homoglyph obfuscation of text
+
+**Severity:** medium · **Confidence:** medium · **Category:** evasion · **OWASP:** AST07
+
+Word characters are replaced with visually identical Unicode look-alikes (for example Cyrillic "а" for Latin "a"). This defeats naive pattern matching while reading identically to a human.
+
+**Fix:** Use plain ASCII. Any non-ASCII look-alike inside a command or keyword is almost certainly deliberate.
+
+### `SG-EVA-003` — Dangerous command recovered from encoded or embedded content
+
+**Severity:** critical · **Confidence:** high · **Category:** evasion · **OWASP:** AST07
+
+A base64, hex or percent-encoded blob (or a file inside an archive or document) decodes to a command that downloads, executes or deletes content. The encoding exists to hide it.
+
+**Fix:** Never ship encoded executables or scripts inside a skill. Inline the real, reviewable source.
+
+### `SG-EVA-004` — Agent instructions hidden in encoded or embedded content
+
+**Severity:** critical · **Confidence:** high · **Category:** evasion · **OWASP:** AST02
+
+An encoded blob or an embedded document decodes to natural-language instructions aimed at the agent, such as overriding prior instructions or sending data away. Humans never see it.
+
+**Fix:** Keep every instruction in the plain SKILL.md body where it can be reviewed. Remove the encoded blob.
+
+### `SG-EVA-005` — Instructions concealed in HTML or Markdown comments
+
+**Severity:** medium · **Confidence:** medium · **Category:** evasion · **OWASP:** AST02
+
+Instruction-like text is hidden inside an HTML or Markdown comment. The rendered skill looks benign while the model still reads the comment.
+
+**Fix:** Remove hidden comments. All instructions belong in the visible body.
+
+## artifacts (4)
+
+| Rule | Severity | OWASP | What it detects |
+|---|---|---|---|
+| `SG-ART-001` | critical | AST06 — Supply-chain risk | Compiled artefact with no matching source |
+| `SG-ART-002` | high | AST06 — Supply-chain risk | Suspicious strings inside a binary artefact |
+| `SG-ART-003` | high | AST06 — Supply-chain risk | Executable or script payload inside an archive |
+| `SG-ART-004` | medium | AST06 — Supply-chain risk | Opaque file type that cannot be reviewed |
+
+### `SG-ART-001` — Compiled artefact with no matching source
+
+**Severity:** critical · **Confidence:** high · **Category:** artifacts · **OWASP:** AST06
+
+The skill ships compiled bytecode or a shared library (for example a .pyc) without the source file it was built from. This is the exact shape of the poisoned-bytecode supply-chain attack: the bytecode contains behaviour the visible source does not.
+
+**Fix:** Delete compiled artefacts. Ship readable source only, and let the agent interpret it.
+
+### `SG-ART-002` — Suspicious strings inside a binary artefact
+
+**Severity:** high · **Confidence:** medium · **Category:** artifacts · **OWASP:** AST06
+
+A bundled binary contains strings strongly associated with payloads and post-exploitation: library injection, reverse shells, credential paths or inline base64 decoding.
+
+**Fix:** Remove the binary, or document and vendor it from a pinned, signed upstream release. Never trust a binary you cannot read.
+
+### `SG-ART-003` — Executable or script payload inside an archive
+
+**Severity:** high · **Confidence:** high · **Category:** artifacts · **OWASP:** AST06
+
+An archive or document (such as .docx, .zip, .jar) contains an executable or script entry. This is how a payload rides along inside a file a reviewer would open as text.
+
+**Fix:** Rebuild the document without embedded scripts, or ship the payload as explicit, reviewable source.
+
+### `SG-ART-004` — Opaque file type that cannot be reviewed
+
+**Severity:** medium · **Confidence:** medium · **Category:** artifacts · **OWASP:** AST06
+
+The skill ships one or more files that a human cannot read and a code scanner cannot fully analyse. Opaque blobs defeat review and are outside the Agent Skills specification.
+
+**Fix:** Keep skills to reviewable text. If a binary asset is unavoidable, pin it to a checksum and explain why.
+
+## mcp (7)
+
+| Rule | Severity | OWASP | What it detects |
+|---|---|---|---|
+| `SG-MCP-001` | critical | AST06 — Supply-chain risk | MCP server pipes remote code into a shell |
+| `SG-MCP-002` | high | AST06 — Supply-chain risk | MCP server runs an unpinned package |
+| `SG-MCP-003` | high | AST04 — Data exfiltration | Secret hardcoded in MCP server environment |
+| `SG-MCP-004` | critical | AST05 — Unsafe or destructive execution | MCP server launched with permission-bypass flags |
+| `SG-MCP-005` | medium | AST06 — Supply-chain risk | Remote MCP server over plaintext HTTP |
+| `SG-MCP-006` | high | AST03 — Credential and secret access | MCP filesystem server rooted at home or root |
+| `SG-MCP-007` | medium | AST04 — Data exfiltration | MCP auto-approval or blanket trust enabled |
+
+### `SG-MCP-001` — MCP server pipes remote code into a shell
+
+**Severity:** critical · **Confidence:** high · **Category:** mcp · **OWASP:** AST06
+
+An MCP server is configured to fetch a script and execute it in a shell. The code that runs is whatever the remote host serves at launch time.
+
+**Fix:** Install the server as a pinned package, or vendor the entry point into the repository.
+
+### `SG-MCP-002` — MCP server runs an unpinned package
+
+**Severity:** high · **Confidence:** medium · **Category:** mcp · **OWASP:** AST06
+
+An MCP server is launched with npx/pipx/uvx without a pinned version. The package resolved at launch can change after this configuration was reviewed.
+
+**Fix:** Pin the exact version, for example `npx -y @scope/server@1.4.2`.
+
+### `SG-MCP-003` — Secret hardcoded in MCP server environment
+
+**Severity:** high · **Confidence:** medium · **Category:** mcp · **OWASP:** AST04
+
+An MCP server entry embeds what looks like an API key or token in the configuration file, which is committed and shared.
+
+**Fix:** Reference the value from the environment or a secret store instead of inlining it.
+
+### `SG-MCP-004` — MCP server launched with permission-bypass flags
+
+**Severity:** critical · **Confidence:** high · **Category:** mcp · **OWASP:** AST05
+
+A server or harness is started with flags that disable approvals or the sandbox, removing the last human checkpoint before action.
+
+**Fix:** Remove the bypass flag. Approvals and sandboxing are the control, not an obstacle.
+
+### `SG-MCP-005` — Remote MCP server over plaintext HTTP
+
+**Severity:** medium · **Confidence:** high · **Category:** mcp · **OWASP:** AST06
+
+A remote MCP server is reached over unencrypted HTTP, so its responses can be rewritten in transit.
+
+**Fix:** Use HTTPS, and pin the expected host.
+
+### `SG-MCP-006` — MCP filesystem server rooted at home or root
+
+**Severity:** high · **Confidence:** medium · **Category:** mcp · **OWASP:** AST03
+
+A filesystem MCP server is given access to the whole home directory or filesystem, so any instruction the agent reads can reach every file the user owns.
+
+**Fix:** Scope the server to the specific project directory it needs.
+
+### `SG-MCP-007` — MCP auto-approval or blanket trust enabled
+
+**Severity:** medium · **Confidence:** medium · **Category:** mcp · **OWASP:** AST04
+
+The configuration pre-approves tool calls or marks servers as trusted, so the agent can act without asking.
+
+**Fix:** Require approval for tool calls, especially from servers that touch the network or the filesystem.
+
+## plugin (3)
+
+| Rule | Severity | OWASP | What it detects |
+|---|---|---|---|
+| `SG-PLUG-001` | high | AST05 — Unsafe or destructive execution | Plugin hook executes a shell command |
+| `SG-PLUG-002` | critical | AST06 — Supply-chain risk | Plugin hook downloads and runs remote code |
+| `SG-PLUG-003` | medium | AST04 — Data exfiltration | Plugin hook runs on every event without a matcher |
+
+### `SG-PLUG-001` — Plugin hook executes a shell command
+
+**Severity:** high · **Confidence:** high · **Category:** plugin · **OWASP:** AST05
+
+The plugin registers a lifecycle hook that runs a shell command. Hooks execute automatically, so installing the plugin runs this code without a per-action prompt.
+
+**Fix:** Remove hooks you cannot fully read, or make them a no-op. Prefer explicit user-invoked commands over automatic hooks.
+
+### `SG-PLUG-002` — Plugin hook downloads and runs remote code
+
+**Severity:** critical · **Confidence:** high · **Category:** plugin · **OWASP:** AST06
+
+A lifecycle hook fetches a script from the network and executes it. The hook runs automatically, so this is unattended remote code execution.
+
+**Fix:** Vendor the script, pin it to a checksum, and run it only on explicit user action.
+
+### `SG-PLUG-003` — Plugin hook runs on every event without a matcher
+
+**Severity:** medium · **Confidence:** medium · **Category:** plugin · **OWASP:** AST04
+
+A tool hook has no matcher, so it runs on every tool call the agent makes rather than a narrow, named tool. This maximises the blast radius of the hook.
+
+**Fix:** Add a matcher that limits the hook to the specific tools it needs.
+
+## metadata (9)
 
 | Rule | Severity | OWASP | What it detects |
 |---|---|---|---|
@@ -369,6 +605,9 @@ Contains a random-looking string that may be an encoded payload or an embedded c
 | `SG-META-004` | medium | AST08 — Over-broad permissions and metadata hygiene | Skill claims to always run or auto-apply |
 | `SG-META-005` | low | AST08 — Over-broad permissions and metadata hygiene | Skill has no frontmatter |
 | `SG-META-006` | low | AST08 — Over-broad permissions and metadata hygiene | Skill name does not match its directory |
+| `SG-META-007` | high | AST08 — Over-broad permissions and metadata hygiene | Body uses a capability the frontmatter does not grant |
+| `SG-META-008` | high | AST02 — Untrusted dependency or tool instructions | Frontmatter metadata contains instruction-like text |
+| `SG-META-009` | low | AST08 — Over-broad permissions and metadata hygiene | Non-standard or oversized frontmatter fields |
 
 ### `SG-META-001` — Missing skill description
 
@@ -417,6 +656,30 @@ The SKILL.md has no frontmatter block, so it cannot declare a name, description 
 The declared name differs from the folder name, which makes review and pinning harder.
 
 **Fix:** Keep the frontmatter `name` identical to the directory name.
+
+### `SG-META-007` — Body uses a capability the frontmatter does not grant
+
+**Severity:** high · **Confidence:** medium · **Category:** metadata · **OWASP:** AST08
+
+The skill declares an explicit `allowed-tools` list, but its body performs an action (running a shell, reaching the network, writing files) that the declared list does not cover. The stated permissions do not match the behaviour.
+
+**Fix:** Either grant the tool the skill actually needs, or remove the action from the body. Declared scope should match behaviour.
+
+### `SG-META-008` — Frontmatter metadata contains instruction-like text
+
+**Severity:** high · **Confidence:** medium · **Category:** metadata · **OWASP:** AST02
+
+The name or description carries instruction-like phrasing aimed at the agent. Frontmatter is read verbatim by the model, so it is a prompt-injection channel, not just a label.
+
+**Fix:** Keep metadata to a plain, factual description of what the skill does.
+
+### `SG-META-009` — Non-standard or oversized frontmatter fields
+
+**Severity:** low · **Confidence:** medium · **Category:** metadata · **OWASP:** AST08
+
+The frontmatter contains keys outside the Agent Skills specification, or values longer than the spec allows. Unknown keys are ignored by some harnesses and honoured by others, which makes behaviour inconsistent.
+
+**Fix:** Stick to the documented frontmatter keys and keep the description under 1024 characters.
 
 ## secrets (4)
 
@@ -493,4 +756,4 @@ Contains a compressed archive whose contents are not visible during review.
 
 ---
 
-_Generated from SkillGuard v0.1.0._
+_Generated from SkillGuard v0.2.0._

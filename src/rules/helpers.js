@@ -1,7 +1,10 @@
 /**
  * Rule helpers. A rule is plain data:
  *   { id, title, severity, confidence, category, owasp, description,
- *     remediation, patterns?[], check?(ctx) }
+ *     remediation, patterns?[], check?(ctx), views?[], perSkill? }
+ *
+ * `views` restricts which scan views a rule sees: 'raw', 'deobfuscated',
+ * 'decoded' or 'archive'. Omit it for every view.
  */
 
 import { posAt, redact } from '../util.js';
@@ -12,7 +15,7 @@ export function truncate(value, n = 140) {
 }
 
 export function findingAt(rule, ctx, index, match, extra = {}) {
-  const { line, column } = posAt(ctx.lineStarts, index);
+  const pos = ctx.posFor ? ctx.posFor(index) : posAt(ctx.lineStarts, index);
   const masked = rule.redact ? redact(match) : truncate(match);
   return {
     ruleId: rule.id,
@@ -23,14 +26,16 @@ export function findingAt(rule, ctx, index, match, extra = {}) {
     owasp: rule.owasp || null,
     description: extra.description || rule.description,
     remediation: rule.remediation || '',
-    file: ctx.file.path,
-    line,
-    column,
+    file: extra.file || ctx.fileLabel || (ctx.file && ctx.file.path) || '(unknown)',
+    line: pos.line,
+    column: pos.column,
     match: masked,
+    evasion: extra.evasion !== undefined ? extra.evasion : ctx.evasion || null,
+    derivedFrom: extra.derivedFrom !== undefined ? extra.derivedFrom : ctx.derivedFrom || null,
   };
 }
 
-/** Run every regex in `rule.patterns` against the file text. */
+/** Run every regex in `rule.patterns` against the current view text. */
 export function runPatterns(rule, ctx, maxPerRule) {
   const findings = [];
   const { text } = ctx;

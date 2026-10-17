@@ -1,7 +1,7 @@
 {
   "name": "skillguard",
-  "version": "0.1.0",
-  "description": "Scan AI agent skills for prompt injection, credential theft and supply-chain attacks. Trivy for Agent Skills.",
+  "version": "0.2.0",
+  "description": "Evasion-resistant security scanner for AI agent skills, plugins and MCP servers. Trivy for Agent Skills.",
   "type": "module",
   "bin": {
     "skillguard": "bin/skillguard.js"
@@ -40,6 +40,11 @@
     "owasp",
     "claude-code",
     "opencode",
+    "mcp",
+    "evasion",
+    "sarif",
+    "sbom",
+    "cyclonedx",
     "ci"
   ],
   "license": "MIT",

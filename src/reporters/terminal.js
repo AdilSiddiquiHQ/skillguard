@@ -82,7 +82,7 @@ export function renderTerminal(report, options = {}) {
   for (const skill of report.skills) {
     const v = VERDICT[skill.verdict];
     const scoreColor = skill.verdict === 'fail' ? ANSI.red : skill.verdict === 'review' ? ANSI.yellow : ANSI.green;
-    const header = `  ${c(v.color, v.mark)} ${c(ANSI.bold, skill.path)}`;
+    const header = `  ${c(v.color, v.mark)} ${c(ANSI.bold, skill.path)}${skill.kind && skill.kind !== 'skill' ? c(ANSI.dim, ` (${skill.kind})`) : ''}`;
     const meta = `${v.label}  score ${skill.score}/100`;
     out.push(`${header}  ${c(ANSI.dim, '·')} ${c(scoreColor, meta)}`);
     out.push(`    ${scoreBar(skill.score, scoreColor, color)}`);
@@ -95,13 +95,23 @@ export function renderTerminal(report, options = {}) {
     for (const f of shown) {
       const sevColor = SEVERITY_COLOR[f.severity] || ANSI.grey;
       const label = c(sevColor, ` ${f.severity.toUpperCase()} `);
-      const allowed = f.allowed ? c(ANSI.dim, ' (allowed)') : '';
+      const tags = [
+        f.allowed ? c(ANSI.dim, ' (allowed)') : '',
+        f.baselined ? c(ANSI.dim, ' (baselined)') : '',
+        f.overridden ? c(ANSI.magenta, ' (severity overridden)') : '',
+        f.evasion ? c(ANSI.magenta, ` [evasion: ${f.evasion}]`) : '',
+      ].join('');
       out.push('');
-      out.push(`    ${label} ${c(ANSI.bold, f.title)}${allowed}`);
+      out.push(`    ${label} ${c(ANSI.bold, f.title)}${tags}`);
       out.push(
         `    ${c(ANSI.grey, `${f.file}:${f.line}:${f.column}`)}  ${c(ANSI.grey, f.ruleId)}${f.owasp ? `  ${c(ANSI.grey, f.owasp)}` : ''}`
       );
       if (f.match) out.push(`    ${c(ANSI.dim, '›')} ${c(ANSI.dim, f.match)}`);
+      if (f.derivedFrom) {
+        out.push(
+          `    ${c(ANSI.magenta, '↳')} ${c(ANSI.dim, `recovered from ${f.derivedFrom.file}${f.derivedFrom.entry ? ` :: ${f.derivedFrom.entry}` : ''}`)}`
+        );
+      }
       if (verbose && f.description) {
         out.push(wrap(f.description, 96, 6));
       }
@@ -126,11 +136,13 @@ export function renderTerminal(report, options = {}) {
   const s = report.summary;
   const threshold = report.failOn;
   const gateFails =
-    Boolean(threshold) &&
-    threshold !== 'none' &&
-    report.skills.some((skill) =>
-      skill.findings.some((f) => !f.allowed && isAtLeast(f.severity, threshold))
-    );
+    typeof options.gateFailed === 'boolean'
+      ? options.gateFailed
+      : Boolean(threshold) &&
+        threshold !== 'none' &&
+        report.skills.some((skill) =>
+          skill.findings.some((f) => !f.allowed && !f.baselined && isAtLeast(f.severity, threshold))
+        );
 
   let result = 'PASS';
   if (gateFails) result = 'FAIL';
