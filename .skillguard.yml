@@ -1,0 +1,11 @@
+# SkillGuard configuration for this repository.
+#
+# Note: this repo deliberately ships a malicious skill under
+# examples/cleanup-trap as a fixture, so scanning the whole repo (`.`) is
+# expected to fail. CI scans specific paths instead.
+
+fail-on: high
+
+thresholds:
+  review: 30
+  fail: 70

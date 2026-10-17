@@ -1,0 +1,70 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    name: Test (Node ${{ matrix.node }})
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        node: [18, 20, 22, 24]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ matrix.node }}
+
+      - name: Run the test suite
+        run: node --test
+
+      - name: Scan a clean skill (expected to pass)
+        run: node bin/skillguard.js examples/conventional-commit --fail-on high
+
+      - name: Scan the malicious fixture (expected to fail)
+        run: |
+          set +e
+          node bin/skillguard.js examples/cleanup-trap --fail-on high > /dev/null 2>&1
+          status=$?
+          set -e
+          if [ "$status" -ne 1 ]; then
+            echo "::error::expected SkillGuard to fail on the malicious fixture (got exit $status)"
+            exit 1
+          fi
+          echo "SkillGuard correctly flagged the malicious fixture."
+
+      - name: Verify SARIF and badge outputs
+        run: |
+          node bin/skillguard.js examples/conventional-commit --fail-on none \
+            --sarif /tmp/skillguard.sarif --badge /tmp/skillguard-badge.svg --json > /dev/null
+          node -e "const s=require('/tmp/skillguard.sarif'); if(s.version!=='2.1.0') process.exit(1)"
+          test -s /tmp/skillguard-badge.svg
+
+  security:
+    name: Self-scan (SARIF)
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      security-events: write
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Run SkillGuard across the repository
+        run: node bin/skillguard.js . --fail-on none --sarif skillguard.sarif
+
+      - name: Upload SARIF to GitHub code scanning
+        uses: github/codeql-action/upload-sarif@v3
+        with:
+          sarif_file: skillguard.sarif
+          category: skillguard

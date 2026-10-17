@@ -1,0 +1,47 @@
+# Security policy
+
+## Reporting a vulnerability
+
+SkillGuard is a security tool, so bypasses and false negatives matter as much
+as memory-safety style bugs.
+
+Please report privately using GitHub's [private vulnerability
+reporting](https://github.com/AdilSiddiquiHQ/skillguard/security/advisories/new)
+rather than opening a public issue.
+
+Include:
+
+- The version (`skillguard --version`) or commit.
+- A minimal `SKILL.md` that should be flagged but is not.
+- The rules you expected to fire.
+
+We aim to acknowledge within 72 hours and to ship a fix or mitigation within
+30 days. Reporters are credited in the release notes unless they prefer
+otherwise.
+
+## Scope
+
+In scope:
+
+- A malicious skill pattern that SkillGuard fails to detect.
+- A crash, hang or unbounded resource use caused by scanning a crafted skill.
+- Path traversal or arbitrary file write caused by CLI arguments.
+- Command execution in the scanner itself (it should never execute skill
+  content).
+
+Out of scope:
+
+- False positives on legitimate skills (please open a normal issue, with the
+  rule id).
+- Vulnerabilities in the agent, model or marketplace that loads a skill.
+- Anything requiring a user to run untrusted code outside SkillGuard.
+
+## Design guarantees
+
+- SkillGuard makes **no network requests**. It cannot exfiltrate what it scans.
+- SkillGuard **never executes** the content it scans.
+- SkillGuard redacts secrets in output so reports and CI logs do not leak them.
+- SkillGuard has **zero runtime dependencies**, minimising its own supply chain.
+
+If you find behaviour that violates any of the above, treat it as a
+vulnerability and report it privately.

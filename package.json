@@ -1,0 +1,55 @@
+{
+  "name": "skillguard",
+  "version": "0.1.0",
+  "description": "Scan AI agent skills for prompt injection, credential theft and supply-chain attacks. Trivy for Agent Skills.",
+  "type": "module",
+  "bin": {
+    "skillguard": "bin/skillguard.js"
+  },
+  "main": "src/index.js",
+  "exports": {
+    ".": "./src/index.js"
+  },
+  "files": [
+    "bin",
+    "src",
+    "action.yml",
+    ".pre-commit-hooks.yaml",
+    "docs",
+    "README.md",
+    "LICENSE"
+  ],
+  "engines": {
+    "node": ">=18"
+  },
+  "scripts": {
+    "test": "node --test",
+    "scan": "node bin/skillguard.js",
+    "docs": "node scripts/generate-rules-doc.js",
+    "selfcheck": "node bin/skillguard.js examples --fail-on none"
+  },
+  "keywords": [
+    "ai-agents",
+    "agent-skills",
+    "skill-md",
+    "security",
+    "scanner",
+    "static-analysis",
+    "prompt-injection",
+    "supply-chain",
+    "owasp",
+    "claude-code",
+    "opencode",
+    "ci"
+  ],
+  "license": "MIT",
+  "author": "Ninja.69",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/AdilSiddiquiHQ/skillguard.git"
+  },
+  "bugs": {
+    "url": "https://github.com/AdilSiddiquiHQ/skillguard/issues"
+  },
+  "homepage": "https://github.com/AdilSiddiquiHQ/skillguard#readme"
+}

@@ -1,0 +1,28 @@
+# Dependencies
+node_modules/
+
+# Build output
+dist/
+build/
+
+# SkillGuard local state
+.skillguard-cache/
+skillguard-report.json
+skillguard.sarif
+
+# Editors / OS
+.DS_Store
+.idea/
+.vscode/
+*.swp
+
+# Logs
+*.log
+npm-debug.log*
+yarn-error.log*
+
+# Generated reports
+skillguard-report.md
+skillguard-report.json
+skillguard.sarif
+skillguard-badge.svg

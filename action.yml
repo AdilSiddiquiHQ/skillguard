@@ -1,0 +1,44 @@
+name: SkillGuard
+description: Scan AI agent skills for prompt injection, credential theft and supply-chain attacks.
+author: Ninja.69
+
+branding:
+  icon: shield
+  color: purple
+
+inputs:
+  path:
+    description: Files or directories to scan.
+    required: false
+    default: .
+  fail-on:
+    description: Severity that fails the job. One of critical, high, medium, low, none.
+    required: false
+    default: high
+  sarif-file:
+    description: Path to write the SARIF report. Empty to skip.
+    required: false
+    default: skillguard.sarif
+
+outputs:
+  sarif-file:
+    description: Path of the SARIF report that was written.
+    value: ${{ steps.scan.outputs.sarif-file }}
+
+runs:
+  using: composite
+  steps:
+    - id: scan
+      shell: bash
+      env:
+        SG_PATH: ${{ inputs.path }}
+        SG_FAIL_ON: ${{ inputs.fail-on }}
+        SG_SARIF: ${{ inputs.sarif-file }}
+      run: |
+        set -euo pipefail
+        args=("$SG_PATH" --fail-on "$SG_FAIL_ON")
+        if [ -n "$SG_SARIF" ]; then
+          args+=(--sarif "$SG_SARIF")
+        fi
+        node "${{ github.action_path }}/bin/skillguard.js" "${args[@]}"
+        echo "sarif-file=$SG_SARIF" >> "$GITHUB_OUTPUT"

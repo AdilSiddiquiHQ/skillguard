@@ -1,0 +1,45 @@
+# Example: scan every pull request and upload findings to GitHub code scanning.
+# Copy this file to .github/workflows/skillguard.yml in your repository.
+
+name: SkillGuard
+
+on:
+  pull_request:
+    paths:
+      - "**/SKILL.md"
+      - "**/*.skill.md"
+      - ".claude/skills/**"
+      - ".github/workflows/skillguard.yml"
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+  security-events: write
+
+jobs:
+  scan:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      # Option A: use the published composite action
+      - uses: AdilSiddiquiHQ/skillguard@main
+        with:
+          path: .
+          fail-on: high
+          sarif-file: skillguard.sarif
+
+      # Option B: run it directly without any action
+      # - run: npx github:AdilSiddiquiHQ/skillguard . --fail-on high --sarif skillguard.sarif
+
+      - name: Upload SARIF to GitHub code scanning
+        if: always()
+        uses: github/codeql-action/upload-sarif@v3
+        with:
+          sarif_file: skillguard.sarif
+          category: skillguard
