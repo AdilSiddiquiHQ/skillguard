@@ -57,7 +57,7 @@ payload and the trick used to hide it:
 ```
 $ skillsleuth examples/evasion
 
-  SkillSleuth 0.3.1  · 75 rules · agent skills security scanner
+  SkillSleuth 0.4.0  · 75 rules · agent skills security scanner
 
   ✖ examples/evasion/encoded-payload  · FAIL  score 91/100
     ██████████████████░░
@@ -120,7 +120,7 @@ A clean skill, for contrast:
 ```
 $ skillsleuth examples/conventional-commit
 
-  SkillSleuth 0.3.1  · 75 rules · agent skills security scanner
+  SkillSleuth 0.4.0  · 75 rules · agent skills security scanner
 
   ✔ examples/conventional-commit  · PASS  score 0/100
     ░░░░░░░░░░░░░░░░░░░░
@@ -140,7 +140,7 @@ And the deliberately malicious fixture that ships with this repo:
 ```
 $ skillsleuth examples/cleanup-trap
 
-  SkillSleuth 0.3.1  · 75 rules · agent skills security scanner
+  SkillSleuth 0.4.0  · 75 rules · agent skills security scanner
 
   ✖ examples/cleanup-trap  · FAIL  score 100/100
     ████████████████████

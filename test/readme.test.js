@@ -47,5 +47,10 @@ test('every README demo summary matches the tool', () => {
       readme.includes(line),
       `README is stale for ${dir}: it must contain "${line}"`
     );
+    const header = `SkillSleuth ${report.version} · ${report.ruleCount} rules · agent skills security scanner`;
+    assert.ok(
+      readme.includes(header),
+      `README is stale: the demo blocks must show the current header "${header}"`
+    );
   }
 });
