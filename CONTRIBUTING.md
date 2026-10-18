@@ -1,14 +1,14 @@
-# Contributing to SkillGuard
+# Contributing to SkillSleuth
 
 Thanks for helping make the agent skills ecosystem safer to use.
 
 ## Getting started
 
 ```bash
-git clone https://github.com/AdilSiddiquiHQ/skillguard
-cd skillguard
+git clone https://github.com/AdilSiddiquiHQ/skillsleuth
+cd skillsleuth
 node --test          # the full suite, no dependencies to install
-node bin/skillguard.js examples/cleanup-trap
+node bin/skillsleuth.js examples/cleanup-trap
 ```
 
 There is no build step and no `npm install` required. Node 18 or newer.
@@ -16,12 +16,12 @@ There is no build step and no `npm install` required. Node 18 or newer.
 ## Project layout
 
 ```
-bin/skillguard.js        CLI entry point
+bin/skillsleuth.js        CLI entry point
 src/cli.js               argument parsing and output
 src/discover.js          finds skills (folders containing SKILL.md)
 src/scan.js              runs rules, dedupes, scores
 src/score.js             scoring and verdict thresholds
-src/config.js            .skillguard.yml loading
+src/config.js            .skillsleuth.yml loading
 src/frontmatter.js       minimal YAML frontmatter parser
 src/rules/*.js           the rule catalog, one file per category
 src/reporters/*.js       terminal, SARIF, Markdown and badge output

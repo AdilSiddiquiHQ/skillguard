@@ -28,8 +28,8 @@ import { buildStatement, fingerprintPublicKey, generateKeyPair, signStatement, v
 import { pluralize } from './util.js';
 import { TOOL_NAME, VERSION } from './version.js';
 
-const DEFAULT_BASELINE = '.skillguard-baseline.json';
-const DEFAULT_ATTESTATION = 'skillguard.attestation.json';
+const DEFAULT_BASELINE = '.skillsleuth-baseline.json';
+const DEFAULT_ATTESTATION = 'skillsleuth.attestation.json';
 
 function writeReportFile(cwd, relativePath, content) {
   const target = resolve(cwd, relativePath);
@@ -42,8 +42,8 @@ const HELP = `${TOOL_NAME} ${VERSION} — scan AI agent skills for prompt inject
 credential theft and supply-chain attacks.
 
 USAGE
-  skillguard [paths...] [options]
-  skillguard <command> [args]
+  skillsleuth [paths...] [options]
+  skillsleuth <command> [args]
 
   paths                Files or directories to scan (default: .)
                        A skill is a folder containing SKILL.md. Plugin
@@ -54,11 +54,11 @@ SCAN OPTIONS
   -v, --version        Show the version
       --all            Treat every Markdown file as a skill document
       --json           Print the full JSON report to stdout
-      --sarif [file]   Write a SARIF report (default: skillguard.sarif)
-      --markdown [f]   Write a Markdown report (default: skillguard-report.md)
-      --badge [file]   Write an SVG badge (default: skillguard-badge.svg)
+      --sarif [file]   Write a SARIF report (default: skillsleuth.sarif)
+      --markdown [f]   Write a Markdown report (default: skillsleuth-report.md)
+      --badge [file]   Write an SVG badge (default: skillsleuth-badge.svg)
       --html [file]    Write a self-contained HTML report
-      --sbom [file]    Write a CycloneDX 1.6 SBOM (default: skillguard.sbom.json)
+      --sbom [file]    Write a CycloneDX 1.6 SBOM (default: skillsleuth.sbom.json)
       --github         Emit GitHub Actions annotations
       --fail-on <sev>  Fail on critical|high|medium|low|none (default: high)
       --min-score <n>  Also fail when a skill scores >= n (0-100)
@@ -67,8 +67,8 @@ SCAN OPTIONS
                        Record current findings as the baseline, then exit
       --ignore <ids>   Comma-separated rule ids to skip (repeatable)
       --exclude <glob> Glob to skip (repeatable)
-      --config <file>  Path to a .skillguard config file
-      --init           Write an example .skillguard.yml
+      --config <file>  Path to a .skillsleuth config file
+      --init           Write an example .skillsleuth.yml
       --force          Overwrite when using --init or --write-baseline
       --verbose        Show descriptions and fixes for every finding
       --quiet          Only print the final verdict line
@@ -88,15 +88,15 @@ EXIT CODES
   3  internal error
 
 EXAMPLES
-  skillguard .                              scan the current project
-  skillguard skills --fail-on critical      only critical findings fail CI
-  skillguard . --sarif results.sarif        emit SARIF for GitHub code scanning
-  skillguard . --github                     annotate a pull request inline
-  skillguard . --html report.html           write a shareable HTML report
-  skillguard . --sbom sbom.json             emit a CycloneDX SBOM
-  skillguard . --write-baseline             adopt on an existing repo
-  skillguard explain SG-EVA-001             learn about one rule
-  npx github:AdilSiddiquiHQ/skillguard .    run without installing
+  skillsleuth .                              scan the current project
+  skillsleuth skills --fail-on critical      only critical findings fail CI
+  skillsleuth . --sarif results.sarif        emit SARIF for GitHub code scanning
+  skillsleuth . --github                     annotate a pull request inline
+  skillsleuth . --html report.html           write a shareable HTML report
+  skillsleuth . --sbom sbom.json             emit a CycloneDX SBOM
+  skillsleuth . --write-baseline             adopt on an existing repo
+  skillsleuth explain SG-EVA-001             learn about one rule
+  npx github:AdilSiddiquiHQ/skillsleuth .    run without installing
 `;
 
 const SEVERITY_VALUES = ['critical', 'high', 'medium', 'low', 'none'];
@@ -204,19 +204,19 @@ function parseArgs(argv) {
 function applyValueFlag(flags, name, value) {
   switch (name) {
     case '--sarif':
-      flags.sarif = value || 'skillguard.sarif';
+      flags.sarif = value || 'skillsleuth.sarif';
       break;
     case '--markdown':
-      flags.markdown = value || 'skillguard-report.md';
+      flags.markdown = value || 'skillsleuth-report.md';
       break;
     case '--badge':
-      flags.badge = value || 'skillguard-badge.svg';
+      flags.badge = value || 'skillsleuth-badge.svg';
       break;
     case '--html':
-      flags.html = value || 'skillguard-report.html';
+      flags.html = value || 'skillsleuth-report.html';
       break;
     case '--sbom':
-      flags.sbom = value || 'skillguard.sbom.json';
+      flags.sbom = value || 'skillsleuth.sbom.json';
       break;
     case '--write-baseline':
       flags.writeBaseline = value || DEFAULT_BASELINE;
@@ -299,7 +299,7 @@ function serializeRule(rule) {
 function explainRule(id) {
   const rule = RULES_BY_ID.get(id) || ALL_RULES.find((r) => r.id.toLowerCase() === String(id).toLowerCase());
   if (!rule) {
-    process.stderr.write(`${TOOL_NAME}: unknown rule "${id}". Run \`skillguard rules\` to list them.\n`);
+    process.stderr.write(`${TOOL_NAME}: unknown rule "${id}". Run \`skillsleuth rules\` to list them.\n`);
     return 2;
   }
   const lines = [
@@ -325,8 +325,8 @@ function explainRule(id) {
 function keygen(flags, cwd) {
   const dir = flags.out ? resolve(cwd, flags.out) : cwd;
   mkdirSync(dir, { recursive: true });
-  const privatePath = resolve(dir, 'skillguard.key');
-  const publicPath = resolve(dir, 'skillguard.pub');
+  const privatePath = resolve(dir, 'skillsleuth.key');
+  const publicPath = resolve(dir, 'skillsleuth.pub');
 
   if (!flags.force && (existsSync(privatePath) || existsSync(publicPath))) {
     process.stderr.write(`${TOOL_NAME}: key files already exist in ${dir} (use --force to overwrite)\n`);
@@ -454,7 +454,7 @@ export async function main(argv) {
   }
 
   if (flags.error) {
-    process.stderr.write(`${TOOL_NAME}: ${flags.error}\n\nRun \`skillguard --help\` for usage.\n`);
+    process.stderr.write(`${TOOL_NAME}: ${flags.error}\n\nRun \`skillsleuth --help\` for usage.\n`);
     return 2;
   }
 
@@ -466,7 +466,7 @@ export async function main(argv) {
   }
 
   if (flags.init) {
-    const target = resolve(cwd, '.skillguard.yml');
+    const target = resolve(cwd, '.skillsleuth.yml');
     if (existsSync(target) && !flags.force) {
       process.stderr.write(`${TOOL_NAME}: ${target} already exists (use --force to overwrite)\n`);
       return 2;
@@ -525,7 +525,7 @@ export async function main(argv) {
     const s = finalReport.summary;
     const verdict = gate.failed ? 'FAIL' : s.review > 0 ? 'REVIEW' : 'PASS';
     process.stdout.write(
-      `skillguard: ${verdict} — ${pluralize(s.skills, 'target')}, ${pluralize(s.findings, 'finding')}\n`
+      `skillsleuth: ${verdict} — ${pluralize(s.skills, 'target')}, ${pluralize(s.findings, 'finding')}\n`
     );
   } else {
     if (flags.github) {

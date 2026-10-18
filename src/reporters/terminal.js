@@ -69,7 +69,7 @@ export function renderTerminal(report, options = {}) {
 
   out.push('');
   out.push(
-    `  ${c(ANSI.bold, 'SkillGuard')} ${c(ANSI.dim, report.version)}  ${c(ANSI.dim, `· ${report.ruleCount} rules · agent skills security scanner`)}`
+    `  ${c(ANSI.bold, 'SkillSleuth')} ${c(ANSI.dim, report.version)}  ${c(ANSI.dim, `· ${report.ruleCount} rules · agent skills security scanner`)}`
   );
   out.push('');
 

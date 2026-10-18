@@ -42,7 +42,7 @@ test('SARIF output is valid 2.1.0 with rules and results', () => {
   const report = maliciousReport();
   const sarif = renderSarif(report);
   assert.equal(sarif.version, '2.1.0');
-  assert.equal(sarif.runs[0].tool.driver.name, 'SkillGuard');
+  assert.equal(sarif.runs[0].tool.driver.name, 'SkillSleuth');
   assert.equal(sarif.runs[0].tool.driver.rules.length, ALL_RULES.length);
   assert.equal(sarif.runs[0].results.length, report.summary.findings);
   assert.ok(sarif.runs[0].results.every((r) => ['error', 'warning', 'note'].includes(r.level)));
@@ -50,7 +50,7 @@ test('SARIF output is valid 2.1.0 with rules and results', () => {
 
 test('markdown output contains a summary table', () => {
   const md = renderMarkdown(maliciousReport());
-  assert.match(md, /SkillGuard report/);
+  assert.match(md, /SkillSleuth report/);
   assert.match(md, /\| Skill \| Verdict \| Score \|/);
 });
 
@@ -67,7 +67,7 @@ test('badge output is svg and reflects the verdict', () => {
 test('terminal output has no ANSI codes when colour is disabled', () => {
   const text = renderTerminal(maliciousReport(), { color: false });
   assert.ok(!text.includes('\u001b['), 'expected no escape sequences');
-  assert.match(text, /SkillGuard/);
+  assert.match(text, /SkillSleuth/);
   assert.match(text, /Summary/);
 });
 

@@ -1,7 +1,7 @@
-- id: skillguard
-  name: SkillGuard (agent skills security)
+- id: skillsleuth
+  name: SkillSleuth (agent skills security)
   description: Scan AI agent skills for prompt injection, credential theft and supply-chain attacks.
-  entry: bin/skillguard.js
+  entry: bin/skillsleuth.js
   language: node
   types: [markdown]
   pass_filenames: true

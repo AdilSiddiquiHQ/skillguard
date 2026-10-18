@@ -37,13 +37,13 @@ export function renderGithub(report, options = {}) {
   const verdict = s.failed > 0 ? 'FAIL' : s.review > 0 ? 'REVIEW' : 'PASS';
   lines.push('');
   lines.push(
-    `::notice title=SkillGuard::${verdict} — ${s.skills} target(s), ${s.findings} finding(s) ` +
+    `::notice title=SkillSleuth::${verdict} — ${s.skills} target(s), ${s.findings} finding(s) ` +
       `(${s.counts.critical} critical, ${s.counts.high} high, ${s.counts.medium} medium). fail-on: ${failOn}`
   );
 
   if (report.baseline && report.baseline.applied) {
     lines.push(
-      `::notice title=SkillGuard baseline::${report.baseline.matched} baselined finding(s) excluded from the gate.`
+      `::notice title=SkillSleuth baseline::${report.baseline.matched} baselined finding(s) excluded from the gate.`
     );
   }
 

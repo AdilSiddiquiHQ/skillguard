@@ -1,2 +1,2 @@
-export const VERSION = '0.3.1';
-export const TOOL_NAME = 'skillguard';
+export const VERSION = '0.4.0';
+export const TOOL_NAME = 'skillsleuth';

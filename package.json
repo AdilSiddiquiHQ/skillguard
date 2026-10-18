@@ -1,10 +1,10 @@
 {
-  "name": "skillguard",
-  "version": "0.3.1",
+  "name": "skillsleuth",
+  "version": "0.4.0",
   "description": "Evasion-resistant security scanner for AI agent skills, plugins and MCP servers. Trivy for Agent Skills.",
   "type": "module",
   "bin": {
-    "skillguard": "bin/skillguard.js"
+    "skillsleuth": "bin/skillsleuth.js"
   },
   "main": "src/index.js",
   "exports": {
@@ -24,10 +24,10 @@
   },
   "scripts": {
     "test": "node --test",
-    "scan": "node bin/skillguard.js",
+    "scan": "node bin/skillsleuth.js",
     "docs": "node scripts/generate-rules-doc.js",
     "precision": "node scripts/measure-precision.js",
-    "selfcheck": "node bin/skillguard.js examples --fail-on none"
+    "selfcheck": "node bin/skillsleuth.js examples --fail-on none"
   },
   "keywords": [
     "ai-agents",
@@ -52,10 +52,10 @@
   "author": "Ninja.69",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/AdilSiddiquiHQ/skillguard.git"
+    "url": "git+https://github.com/AdilSiddiquiHQ/skillsleuth.git"
   },
   "bugs": {
-    "url": "https://github.com/AdilSiddiquiHQ/skillguard/issues"
+    "url": "https://github.com/AdilSiddiquiHQ/skillsleuth/issues"
   },
-  "homepage": "https://github.com/AdilSiddiquiHQ/skillguard#readme"
+  "homepage": "https://github.com/AdilSiddiquiHQ/skillsleuth#readme"
 }

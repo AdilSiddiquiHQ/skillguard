@@ -6,7 +6,7 @@ main(process.argv.slice(2)).then(
     process.exitCode = code;
   },
   (err) => {
-    process.stderr.write(`skillguard: internal error: ${err && err.stack ? err.stack : err}\n`);
+    process.stderr.write(`skillsleuth: internal error: ${err && err.stack ? err.stack : err}\n`);
     process.exitCode = 3;
   }
 );

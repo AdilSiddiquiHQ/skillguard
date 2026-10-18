@@ -28,7 +28,7 @@ const out = [];
 out.push('# Rule reference');
 out.push('');
 out.push(
-  `SkillGuard ships **${ALL_RULES.length} rules** across ${CATEGORIES.length} categories. ` +
+  `SkillSleuth ships **${ALL_RULES.length} rules** across ${CATEGORIES.length} categories. ` +
     'This file is generated from the source by `node scripts/generate-rules-doc.js`.'
 );
 out.push('');
@@ -77,7 +77,7 @@ for (const category of CATEGORIES) {
 
 out.push('---');
 out.push('');
-out.push(`_Generated from SkillGuard v${VERSION}._`);
+out.push(`_Generated from SkillSleuth v${VERSION}._`);
 out.push('');
 
 const target = resolve(import.meta.dirname, '..', 'docs', 'RULES.md');

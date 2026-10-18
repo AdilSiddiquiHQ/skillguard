@@ -1,6 +1,6 @@
 # Rule reference
 
-SkillGuard ships **75 rules** across 13 categories. This file is generated from the source by `node scripts/generate-rules-doc.js`.
+SkillSleuth ships **75 rules** across 13 categories. This file is generated from the source by `node scripts/generate-rules-doc.js`.
 
 ## Severity and scoring
 
@@ -756,4 +756,4 @@ Contains a compressed archive whose contents are not visible during review.
 
 ---
 
-_Generated from SkillGuard v0.3.1._
+_Generated from SkillSleuth v0.4.0._

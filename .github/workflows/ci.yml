@@ -27,24 +27,24 @@ jobs:
         run: node --test
 
       - name: Scan a clean skill (expected to pass)
-        run: node bin/skillguard.js examples/conventional-commit --fail-on high
+        run: node bin/skillsleuth.js examples/conventional-commit --fail-on high
 
       - name: Scan the malicious fixture (expected to fail)
         run: |
           set +e
-          node bin/skillguard.js examples/cleanup-trap --fail-on high > /dev/null 2>&1
+          node bin/skillsleuth.js examples/cleanup-trap --fail-on high > /dev/null 2>&1
           status=$?
           set -e
           if [ "$status" -ne 1 ]; then
-            echo "::error::expected SkillGuard to fail on the malicious fixture (got exit $status)"
+            echo "::error::expected SkillSleuth to fail on the malicious fixture (got exit $status)"
             exit 1
           fi
-          echo "SkillGuard correctly flagged the malicious fixture."
+          echo "SkillSleuth correctly flagged the malicious fixture."
 
       - name: Adversarial evasion suite (expected to fail)
         run: |
           set +e
-          node bin/skillguard.js examples/evasion --fail-on high --json > /tmp/evasion.json 2>/dev/null
+          node bin/skillsleuth.js examples/evasion --fail-on high --json > /tmp/evasion.json 2>/dev/null
           status=$?
           set -e
           if [ "$status" -ne 1 ]; then
@@ -63,32 +63,32 @@ jobs:
 
       - name: Baseline round-trip
         run: |
-          node bin/skillguard.js examples/cleanup-trap --write-baseline /tmp/base.json --force > /dev/null
-          node bin/skillguard.js examples/cleanup-trap --baseline /tmp/base.json --quiet
-          node bin/skillguard.js examples/cleanup-trap --baseline /tmp/base.json --json \
+          node bin/skillsleuth.js examples/cleanup-trap --write-baseline /tmp/base.json --force > /dev/null
+          node bin/skillsleuth.js examples/cleanup-trap --baseline /tmp/base.json --quiet
+          node bin/skillsleuth.js examples/cleanup-trap --baseline /tmp/base.json --json \
             | node -e "let d='';process.stdin.on('data',c=>d+=c).on('end',()=>{const r=JSON.parse(d);if(r.summary.findings!==0){console.error('baseline did not clear findings');process.exit(1)}})"
 
       - name: Sign and verify an attestation
         run: |
-          node bin/skillguard.js keygen --out /tmp/sgkeys > /dev/null
-          node bin/skillguard.js sign examples/conventional-commit --key /tmp/sgkeys/skillguard.key --out /tmp/att.json > /dev/null
-          node bin/skillguard.js verify /tmp/att.json --key /tmp/sgkeys/skillguard.pub
+          node bin/skillsleuth.js keygen --out /tmp/sgkeys > /dev/null
+          node bin/skillsleuth.js sign examples/conventional-commit --key /tmp/sgkeys/skillsleuth.key --out /tmp/att.json > /dev/null
+          node bin/skillsleuth.js verify /tmp/att.json --key /tmp/sgkeys/skillsleuth.pub
 
       - name: Verify SARIF, badge, HTML and SBOM outputs
         run: |
-          node bin/skillguard.js examples/conventional-commit --fail-on none \
-            --sarif /tmp/skillguard.sarif --badge /tmp/skillguard-badge.svg \
-            --html /tmp/skillguard.html --sbom /tmp/skillguard.sbom.json --json > /dev/null
+          node bin/skillsleuth.js examples/conventional-commit --fail-on none \
+            --sarif /tmp/skillsleuth.sarif --badge /tmp/skillsleuth-badge.svg \
+            --html /tmp/skillsleuth.html --sbom /tmp/skillsleuth.sbom.json --json > /dev/null
           node -e "
             const fs = require('fs');
-            const sarif = JSON.parse(fs.readFileSync('/tmp/skillguard.sarif', 'utf8'));
+            const sarif = JSON.parse(fs.readFileSync('/tmp/skillsleuth.sarif', 'utf8'));
             if (sarif.version !== '2.1.0') { console.error('bad SARIF'); process.exit(1); }
-            const bom = JSON.parse(fs.readFileSync('/tmp/skillguard.sbom.json', 'utf8'));
+            const bom = JSON.parse(fs.readFileSync('/tmp/skillsleuth.sbom.json', 'utf8'));
             if (bom.bomFormat !== 'CycloneDX' || bom.specVersion !== '1.6') { console.error('bad SBOM'); process.exit(1); }
             console.log('SARIF and CycloneDX outputs validated');
           "
-          test -s /tmp/skillguard-badge.svg
-          test -s /tmp/skillguard.html
+          test -s /tmp/skillsleuth-badge.svg
+          test -s /tmp/skillsleuth.html
 
   security:
     name: Self-scan (SARIF)
@@ -103,13 +103,13 @@ jobs:
         with:
           node-version: 22
 
-      - name: Run SkillGuard across the repository
-        run: node bin/skillguard.js . --fail-on none --sarif skillguard.sarif
+      - name: Run SkillSleuth across the repository
+        run: node bin/skillsleuth.js . --fail-on none --sarif skillsleuth.sarif
 
       - name: Upload SARIF to GitHub code scanning
         # `security-events: write` is not granted to pull requests from forks.
         if: github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository
         uses: github/codeql-action/upload-sarif@v4
         with:
-          sarif_file: skillguard.sarif
-          category: skillguard
+          sarif_file: skillsleuth.sarif
+          category: skillsleuth

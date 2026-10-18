@@ -2,7 +2,7 @@
  * The evasion-proof suite.
  *
  * Every case here is a technique that bypassed a shipping agent-skill scanner
- * in the June 2026 Trail of Bits research. Each test asserts that SkillGuard
+ * in the June 2026 Trail of Bits research. Each test asserts that SkillSleuth
  * still reports the payload, and that the evasion itself is named. This file
  * is the project's core quality claim, so keep it adversarial.
  */

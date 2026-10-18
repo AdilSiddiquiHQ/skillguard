@@ -3,14 +3,14 @@
  *
  * Scanning tells you what a skill *looks like* now. Signing tells you that the
  * bytes you scanned are the bytes you install — the missing half of every
- * "verified" badge. SkillGuard emits in-toto style statements wrapped in a
+ * "verified" badge. SkillSleuth emits in-toto style statements wrapped in a
  * DSSE envelope, signed with Ed25519 and no external dependencies, so a
  * publisher can sign a skill and a consumer can verify it offline.
  */
 
 import { createHash, generateKeyPairSync, sign as cryptoSign, verify as cryptoVerify, createPrivateKey, createPublicKey } from 'node:crypto';
 
-export const PREDICATE_TYPE = 'https://skillguard.dev/attestation/scan/v1';
+export const PREDICATE_TYPE = 'https://github.com/AdilSiddiquiHQ/skillsleuth/attestation/scan/v1';
 export const STATEMENT_TYPE = 'https://in-toto.io/Statement/v1';
 export const DSSE_PAYLOAD_TYPE = 'application/vnd.in-toto+json';
 

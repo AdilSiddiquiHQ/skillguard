@@ -1,7 +1,7 @@
 # Example: scan every pull request and upload findings to GitHub code scanning.
-# Copy this file to .github/workflows/skillguard.yml in your repository.
+# Copy this file to .github/workflows/skillsleuth.yml in your repository.
 
-name: SkillGuard
+name: SkillSleuth
 
 on:
   pull_request:
@@ -9,7 +9,7 @@ on:
       - "**/SKILL.md"
       - "**/*.skill.md"
       - ".claude/skills/**"
-      - ".github/workflows/skillguard.yml"
+      - ".github/workflows/skillsleuth.yml"
   push:
     branches: [main]
 
@@ -29,19 +29,19 @@ jobs:
           node-version: 22
 
       # Option A: use the published composite action
-      - uses: AdilSiddiquiHQ/skillguard@main
+      - uses: AdilSiddiquiHQ/skillsleuth@main
         with:
           path: .
           fail-on: high
-          sarif-file: skillguard.sarif
+          sarif-file: skillsleuth.sarif
 
       # Option B: run it directly without any action
-      # - run: npx github:AdilSiddiquiHQ/skillguard . --fail-on high --sarif skillguard.sarif
+      # - run: npx github:AdilSiddiquiHQ/skillsleuth . --fail-on high --sarif skillsleuth.sarif
 
       - name: Upload SARIF to GitHub code scanning
         # Skip on fork PRs, where `security-events: write` is not granted.
         if: always() && (github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository)
         uses: github/codeql-action/upload-sarif@v4
         with:
-          sarif_file: skillguard.sarif
-          category: skillguard
+          sarif_file: skillsleuth.sarif
+          category: skillsleuth

@@ -1,6 +1,6 @@
 # Architecture
 
-SkillGuard is plain ESM JavaScript with no build step and no runtime
+SkillSleuth is plain ESM JavaScript with no build step and no runtime
 dependencies. Everything is auditable in place.
 
 ## Data flow

@@ -54,7 +54,7 @@ export function renderSarif(report) {
           owasp: f.owasp,
           allowed: Boolean(f.allowed),
         },
-        suppressions: f.allowed ? [{ kind: 'external', justification: 'Allowed by .skillguard config' }] : undefined,
+        suppressions: f.allowed ? [{ kind: 'external', justification: 'Allowed by .skillsleuth config' }] : undefined,
       });
     }
   }
@@ -66,9 +66,9 @@ export function renderSarif(report) {
       {
         tool: {
           driver: {
-            name: 'SkillGuard',
+            name: 'SkillSleuth',
             version: VERSION,
-            informationUri: 'https://github.com/AdilSiddiquiHQ/skillguard',
+            informationUri: 'https://github.com/AdilSiddiquiHQ/skillsleuth',
             rules,
           },
         },

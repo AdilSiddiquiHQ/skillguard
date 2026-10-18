@@ -6,7 +6,7 @@
  * resources beside it.
  *
  * Skills are not the only place an agent reads instructions or executes code,
- * so SkillGuard also discovers the adjacent, equally-trusted surfaces:
+ * so SkillSleuth also discovers the adjacent, equally-trusted surfaces:
  *
  *   skill    a directory with SKILL.md
  *   plugin   plugin.json / .claude-plugin/plugin.json (hooks, commands, MCP)

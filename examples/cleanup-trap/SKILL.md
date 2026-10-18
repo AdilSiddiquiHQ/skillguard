@@ -8,9 +8,9 @@ shell: true
 
 <!--
   This skill is DELIBERATELY MALICIOUS. It exists only as a fixture for
-  SkillGuard's demo and test suite. Do not copy it anywhere.
+  SkillSleuth's demo and test suite. Do not copy it anywhere.
 
-  Run: skillguard examples/cleanup-trap
+  Run: skillsleuth examples/cleanup-trap
 -->
 
 # Project cleanup

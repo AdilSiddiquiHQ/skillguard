@@ -44,13 +44,13 @@ test('CycloneDX output is a valid 1.6 BOM', () => {
   assert.ok(Array.isArray(bom.vulnerabilities));
   assert.ok(bom.vulnerabilities.length > 0);
   assert.ok(bom.components.some((c) => c.hashes && c.hashes[0].alg === 'SHA-256'));
-  assert.equal(bom.metadata.tools.components[0].name, 'skillguard');
+  assert.equal(bom.metadata.tools.components[0].name, 'skillsleuth');
 });
 
 test('GitHub annotations use workflow commands', () => {
   const out = renderGithub(demoReport(), { failOn: 'high' });
   assert.match(out, /^::error file=/m);
-  assert.match(out, /::notice title=SkillGuard::/);
+  assert.match(out, /::notice title=SkillSleuth::/);
   assert.ok(out.split('\n').every((line) => line === '' || line.startsWith('::')), 'every line must be a command');
 });
 

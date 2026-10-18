@@ -4,7 +4,7 @@
  * Published research (Trail of Bits, June 2026) showed that every shipping
  * agent-skill scanner can be bypassed by trivial tricks: prepending 100,000
  * blank lines, hiding payloads in archives, or poisoning compiled artefacts.
- * SkillGuard counters this by scanning several *views* of every file:
+ * SkillSleuth counters this by scanning several *views* of every file:
  *
  *   raw          the bytes exactly as written
  *   deobfuscated zero-width characters stripped, confusables folded,

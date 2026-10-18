@@ -3,7 +3,7 @@
  *
  * Teams need to encode their own house rules without forking the scanner.
  * A project can declare extra rules and adjust built-in severities directly
- * in `.skillguard.yml`; both are compiled into the same rule shape the engine
+ * in `.skillsleuth.yml`; both are compiled into the same rule shape the engine
  * already understands.
  */
 

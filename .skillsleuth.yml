@@ -1,4 +1,4 @@
-# SkillGuard configuration for this repository.
+# SkillSleuth configuration for this repository.
 #
 # This repo deliberately ships malicious skills under examples/cleanup-trap and
 # examples/evasion as fixtures, so scanning the whole repo (`.`) is expected to

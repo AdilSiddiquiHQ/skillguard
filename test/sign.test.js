@@ -12,7 +12,7 @@ import {
 } from '../src/sign.js';
 
 const REPORT = {
-  tool: 'skillguard',
+  tool: 'skillsleuth',
   version: '0.2.0',
   ruleCount: 75,
   generatedAt: '2026-01-01T00:00:00.000Z',
@@ -40,7 +40,7 @@ test('signs and verifies a statement', () => {
 
   const result = verifyEnvelope(envelope, publicKey);
   assert.equal(result.valid, true);
-  assert.equal(result.statement.predicateType, 'https://skillguard.dev/attestation/scan/v1');
+  assert.equal(result.statement.predicateType, 'https://github.com/AdilSiddiquiHQ/skillsleuth/attestation/scan/v1');
   assert.equal(result.statement.predicate.ruleCount, 75);
   assert.equal(result.statement.subject[0].digest.sha256, 'a'.repeat(64));
 });

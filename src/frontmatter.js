@@ -1,6 +1,6 @@
 /**
  * Minimal YAML frontmatter parser for SKILL.md and config files.
- * Supports the subset used by Agent Skills and SkillGuard config:
+ * Supports the subset used by Agent Skills and SkillSleuth config:
  *   key: scalar
  *   key:
  *     - item

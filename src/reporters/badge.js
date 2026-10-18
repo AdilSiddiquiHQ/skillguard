@@ -22,7 +22,7 @@ function textWidth(text) {
 export function renderBadge(report) {
   const s = report.summary;
   const verdict = s.failed > 0 ? 'fail' : s.review > 0 ? 'review' : 'pass';
-  const label = 'skillguard';
+  const label = 'skillsleuth';
   const value = verdict === 'pass' ? 'passing' : verdict === 'review' ? 'review' : 'failing';
   const color = PALETTE[verdict];
 
@@ -49,7 +49,7 @@ export function renderBadge(report) {
     <text x="${(labelWidth + valueWidth / 2) * 10}" y="150" fill="#010101" fill-opacity=".3" transform="scale(.1)" textLength="${(valueWidth - 10) * 10}">${esc(value)}</text>
     <text x="${(labelWidth + valueWidth / 2) * 10}" y="140" transform="scale(.1)" textLength="${(valueWidth - 10) * 10}">${esc(value)}</text>
   </g>
-  <!-- skillguard ${VERSION} -->
+  <!-- skillsleuth ${VERSION} -->
 </svg>
 `;
 }

@@ -1,4 +1,4 @@
-name: SkillGuard
+name: SkillSleuth
 description: Scan AI agent skills for prompt injection, credential theft and supply-chain attacks.
 author: Ninja.69
 
@@ -18,7 +18,7 @@ inputs:
   sarif-file:
     description: Path to write the SARIF report. Empty to skip.
     required: false
-    default: skillguard.sarif
+    default: skillsleuth.sarif
 
 outputs:
   sarif-file:
@@ -40,5 +40,5 @@ runs:
         if [ -n "$SG_SARIF" ]; then
           args+=(--sarif "$SG_SARIF")
         fi
-        node "${{ github.action_path }}/bin/skillguard.js" "${args[@]}"
+        node "${{ github.action_path }}/bin/skillsleuth.js" "${args[@]}"
         echo "sarif-file=$SG_SARIF" >> "$GITHUB_OUTPUT"

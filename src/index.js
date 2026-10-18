@@ -1,7 +1,7 @@
 /**
- * SkillGuard programmatic API.
+ * SkillSleuth programmatic API.
  *
- *   import { scan, renderSarif } from 'skillguard';
+ *   import { scan, renderSarif } from 'skillsleuth';
  *
  *   const report = scan(['./skills'], { config });
  *   console.log(report.summary, report.skills[0].evasions);

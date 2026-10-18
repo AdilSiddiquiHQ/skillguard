@@ -7,7 +7,7 @@ import { join } from 'node:path';
 import { classifySpecial, discoverSkills } from '../src/discover.js';
 
 function workspace() {
-  return mkdtempSync(join(tmpdir(), 'skillguard-discover-'));
+  return mkdtempSync(join(tmpdir(), 'skillsleuth-discover-'));
 }
 
 function write(root, rel, content) {

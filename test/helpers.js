@@ -6,7 +6,7 @@ import { DEFAULT_CONFIG } from '../src/config.js';
 
 /** Create a throwaway skill directory containing SKILL.md plus extra files. */
 export function makeSkill(name, content, extra = {}) {
-  const root = mkdtempSync(join(tmpdir(), 'skillguard-'));
+  const root = mkdtempSync(join(tmpdir(), 'skillsleuth-'));
   const skillDir = join(root, name);
   mkdirSync(skillDir, { recursive: true });
   writeFileSync(join(skillDir, 'SKILL.md'), content, 'utf8');

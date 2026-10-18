@@ -27,7 +27,7 @@ test('parses value flags with space and equals', () => {
 
 test('optional-value flags fall back to defaults', () => {
   const bare = parseArgs(['--sarif']);
-  assert.equal(bare.sarif, 'skillguard.sarif');
+  assert.equal(bare.sarif, 'skillsleuth.sarif');
 
   const named = parseArgs(['--sarif', 'out.sarif']);
   assert.equal(named.sarif, 'out.sarif');

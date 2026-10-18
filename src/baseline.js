@@ -40,7 +40,7 @@ export function computeBaseline(report, options = {}) {
     }
   }
   return {
-    kind: 'skillguard-baseline',
+    kind: 'skillsleuth-baseline',
     version: 1,
     tool: report.tool,
     toolVersion: report.version,

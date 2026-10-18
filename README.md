@@ -1,18 +1,18 @@
-# SkillGuard
+# SkillSleuth
 
 **The agent-skill scanner that was built to survive the bypasses the others don't.**
 
-`npx github:AdilSiddiquiHQ/skillguard .`
+`npx github:AdilSiddiquiHQ/skillsleuth .`
 
-[![CI](https://github.com/AdilSiddiquiHQ/skillguard/actions/workflows/ci.yml/badge.svg)](https://github.com/AdilSiddiquiHQ/skillguard/actions/workflows/ci.yml)
+[![CI](https://github.com/AdilSiddiquiHQ/skillsleuth/actions/workflows/ci.yml/badge.svg)](https://github.com/AdilSiddiquiHQ/skillsleuth/actions/workflows/ci.yml)
 [![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
 [![Node >= 18](https://img.shields.io/badge/node-%3E%3D18-brightgreen.svg)](https://nodejs.org)
 [![Zero dependencies](https://img.shields.io/badge/dependencies-0-success.svg)](#design-goals)
 [![Rules](https://img.shields.io/badge/rules-75-purple.svg)](docs/RULES.md)
 [![Outputs](https://img.shields.io/badge/outputs-SARIF%20%C2%B7%20CycloneDX%20%C2%B7%20HTML%20%C2%B7%20JSON-informational.svg)](#reporting)
-![SkillGuard](docs/badge.svg)
+![SkillSleuth](docs/badge.svg)
 
-![SkillGuard catching a base64-hidden "curl | sh" payload, passing a clean skill, and reporting 0 critical / 0 high across 66 real public skills](docs/demo.gif)
+![SkillSleuth catching a base64-hidden "curl | sh" payload, passing a clean skill, and reporting 0 critical / 0 high across 66 real public skills](docs/demo.gif)
 
 ---
 
@@ -44,20 +44,20 @@ an hour each**, using tricks that had nothing to do with the payload:
 > "Even when skill scanners have some defenses, their static nature gives an
 > adversary unlimited bites at the apple." — Trail of Bits
 
-**SkillGuard is a direct answer to that report.** It does not scan a file. It
+**SkillSleuth is a direct answer to that report.** It does not scan a file. It
 scans *views* of a file — raw, deobfuscated, decoded and unpacked — and it names
 the evasion it defeated. It is `npm audit` for agent skills, built as if the
 attacker had read the scanner's source.
 
 ## The part that matters: evasion resistance
 
-Point it at a skill that hides a payload and SkillGuard reports **both** the
+Point it at a skill that hides a payload and SkillSleuth reports **both** the
 payload and the trick used to hide it:
 
 ```
-$ skillguard examples/evasion
+$ skillsleuth examples/evasion
 
-  SkillGuard 0.3.1  · 75 rules · agent skills security scanner
+  SkillSleuth 0.3.1  · 75 rules · agent skills security scanner
 
   ✖ examples/evasion/encoded-payload  · FAIL  score 91/100
     ██████████████████░░
@@ -118,9 +118,9 @@ from the Trail of Bits report. If a future change breaks one, CI fails.
 A clean skill, for contrast:
 
 ```
-$ skillguard examples/conventional-commit
+$ skillsleuth examples/conventional-commit
 
-  SkillGuard 0.3.1  · 75 rules · agent skills security scanner
+  SkillSleuth 0.3.1  · 75 rules · agent skills security scanner
 
   ✔ examples/conventional-commit  · PASS  score 0/100
     ░░░░░░░░░░░░░░░░░░░░
@@ -135,12 +135,12 @@ $ skillguard examples/conventional-commit
 And the deliberately malicious fixture that ships with this repo:
 
 <details>
-<summary><code>skillguard examples/cleanup-trap</code></summary>
+<summary><code>skillsleuth examples/cleanup-trap</code></summary>
 
 ```
-$ skillguard examples/cleanup-trap
+$ skillsleuth examples/cleanup-trap
 
-  SkillGuard 0.3.1  · 75 rules · agent skills security scanner
+  SkillSleuth 0.3.1  · 75 rules · agent skills security scanner
 
   ✖ examples/cleanup-trap  · FAIL  score 100/100
     ████████████████████
@@ -269,31 +269,31 @@ critical or high finding, or if an attack stops being caught.
 
 ```bash
 # Run instantly, nothing to install
-npx github:AdilSiddiquiHQ/skillguard .
+npx github:AdilSiddiquiHQ/skillsleuth .
 
 # Or install globally
-npm install -g github:AdilSiddiquiHQ/skillguard
+npm install -g github:AdilSiddiquiHQ/skillsleuth
 
 # Or clone and run from source
-git clone https://github.com/AdilSiddiquiHQ/skillguard
-cd skillguard && node bin/skillguard.js --help
+git clone https://github.com/AdilSiddiquiHQ/skillsleuth
+cd skillsleuth && node bin/skillsleuth.js --help
 ```
 
-SkillGuard has **zero runtime dependencies** and never makes a network call.
+SkillSleuth has **zero runtime dependencies** and never makes a network call.
 It reads files and prints findings. That is the whole attack surface.
 
 ## Quick start
 
 ```bash
-skillguard .                                  # scan skills, plugins, MCP configs and agent files
-skillguard .claude/skills                     # scan a specific skills folder
-skillguard . --fail-on critical               # only critical findings fail CI
-skillguard . --sarif results.sarif            # SARIF for GitHub code scanning
-skillguard . --github                         # inline annotations on a pull request
-skillguard . --html report.html               # a shareable, self-contained report
-skillguard . --sbom skillguard.sbom.json      # CycloneDX 1.6 SBOM
-skillguard . --write-baseline                 # adopt on an existing repo, then fail only on new findings
-skillguard explain SG-EVA-001                 # learn about one rule
+skillsleuth .                                  # scan skills, plugins, MCP configs and agent files
+skillsleuth .claude/skills                     # scan a specific skills folder
+skillsleuth . --fail-on critical               # only critical findings fail CI
+skillsleuth . --sarif results.sarif            # SARIF for GitHub code scanning
+skillsleuth . --github                         # inline annotations on a pull request
+skillsleuth . --html report.html               # a shareable, self-contained report
+skillsleuth . --sbom skillsleuth.sbom.json      # CycloneDX 1.6 SBOM
+skillsleuth . --write-baseline                 # adopt on an existing repo, then fail only on new findings
+skillsleuth explain SG-EVA-001                 # learn about one rule
 ```
 
 Exit codes: `0` clean · `1` a finding met `--fail-on` · `2` usage error · `3` internal error.
@@ -301,7 +301,7 @@ Exit codes: `0` clean · `1` a finding met `--fail-on` · `2` usage error · `3`
 ## What it scans
 
 Agent instructions live in more than one file, and the ones outside `SKILL.md`
-are usually the least reviewed. SkillGuard discovers all of them:
+are usually the least reviewed. SkillSleuth discovers all of them:
 
 | Target | Files | Why it matters |
 |---|---|---|
@@ -380,7 +380,7 @@ what makes it safe to gate a merge on.
 
 ## Configuration
 
-Create `.skillguard.yml` in your repo (or run `skillguard --init`):
+Create `.skillsleuth.yml` in your repo (or run `skillsleuth --init`):
 
 ```yaml
 fail-on: high          # critical | high | medium | low | none
@@ -427,8 +427,8 @@ The first scan of a big repo is always noisy. Record what you have already
 accepted and fail only on what is new:
 
 ```bash
-skillguard . --write-baseline          # writes .skillguard-baseline.json
-skillguard . --baseline .skillguard-baseline.json
+skillsleuth . --write-baseline          # writes .skillsleuth-baseline.json
+skillsleuth . --baseline .skillsleuth-baseline.json
 ```
 
 Findings are identified by rule + file + match text, so adding a comment above
@@ -439,18 +439,18 @@ report but no longer affect the score or the gate.
 
 Scanning tells you what a skill *looks like* now. Signing tells you the bytes
 you scanned are the bytes you install — the missing half of every "verified"
-badge. SkillGuard emits in-toto style statements in a DSSE envelope, signed
+badge. SkillSleuth emits in-toto style statements in a DSSE envelope, signed
 with Ed25519 and **no external dependencies**:
 
 ```bash
-skillguard keygen --out .keys
-skillguard sign skills/my-skill --key .keys/skillguard.key
-skillguard verify skillguard.attestation.json --key .keys/skillguard.pub
+skillsleuth keygen --out .keys
+skillsleuth sign skills/my-skill --key .keys/skillsleuth.key
+skillsleuth verify skillsleuth.attestation.json --key .keys/skillsleuth.pub
 ```
 
 ```
   ✔ VALID signature
-  predicate: https://skillguard.dev/attestation/scan/v1
+  predicate: https://github.com/AdilSiddiquiHQ/skillsleuth/attestation/scan/v1
   subjects : 2 file(s)
 ```
 
@@ -475,13 +475,13 @@ every other dependency you track.
 
 ```
 USAGE
-  skillguard [paths...] [options]
-  skillguard <command> [args]
+  skillsleuth [paths...] [options]
+  skillsleuth <command> [args]
 
       --all             Treat every Markdown file as a skill document
       --json            Print the full JSON report to stdout
-      --sarif [file]    Write SARIF (default: skillguard.sarif)
-      --markdown [f]    Write Markdown (default: skillguard-report.md)
+      --sarif [file]    Write SARIF (default: skillsleuth.sarif)
+      --markdown [f]    Write Markdown (default: skillsleuth-report.md)
       --html [file]     Write a self-contained HTML report
       --sbom [file]     Write a CycloneDX 1.6 SBOM
       --badge [file]    Write an SVG badge
@@ -494,7 +494,7 @@ USAGE
       --ignore <ids>    Comma-separated rule ids to skip (repeatable)
       --exclude <glob>  Glob to skip (repeatable)
       --config <file>   Path to a config file
-      --init            Write an example .skillguard.yml
+      --init            Write an example .skillsleuth.yml
       --verbose         Show descriptions and fixes
       --quiet           Print only the verdict line
       --no-color        Disable ANSI colour
@@ -510,7 +510,7 @@ COMMANDS
 ## GitHub Action
 
 ```yaml
-name: SkillGuard
+name: SkillSleuth
 on: [pull_request]
 
 permissions:
@@ -524,17 +524,17 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - uses: AdilSiddiquiHQ/skillguard@main
+      - uses: AdilSiddiquiHQ/skillsleuth@main
         with:
           path: .
           fail-on: high
-          sarif-file: skillguard.sarif
+          sarif-file: skillsleuth.sarif
 
       - uses: github/codeql-action/upload-sarif@v4
         if: always() && (github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository)
         with:
-          sarif_file: skillguard.sarif
-          category: skillguard
+          sarif_file: skillsleuth.sarif
+          category: skillsleuth
 ```
 
 A ready-to-copy version is at [`examples/github-workflow.yml`](examples/github-workflow.yml).
@@ -545,16 +545,16 @@ No `npm install` step is needed — there are no dependencies.
 ```yaml
 # .pre-commit-config.yaml
 repos:
-  - repo: https://github.com/AdilSiddiquiHQ/skillguard
-    rev: v0.3.1
+  - repo: https://github.com/AdilSiddiquiHQ/skillsleuth
+    rev: v0.4.0
     hooks:
-      - id: skillguard
+      - id: skillsleuth
 ```
 
 ## Programmatic API
 
 ```js
-import { scan, renderSarif } from 'skillguard';
+import { scan, renderSarif } from 'skillsleuth';
 
 const report = scan(['./skills'], {
   config: { failOn: 'high', thresholds: { review: 30, fail: 70 } },
@@ -580,13 +580,13 @@ what you reviewed and detect drift later.
 You can, and it helps — but the June 2026 research showed a scanner's LLM can be
 talked out of a finding with well-written prose, and a review that changes
 answer between runs cannot gate a merge, cannot run offline, and costs money per
-scan. SkillGuard is the deterministic layer: it catches the mechanical,
+scan. SkillSleuth is the deterministic layer: it catches the mechanical,
 well-known attack patterns every time, for free, in CI. Use an LLM *in addition*
 for judgement calls — not instead.
 
 ## Limitations and threat model
 
-SkillGuard is honest about what it is:
+SkillSleuth is honest about what it is:
 
 - **It is static analysis, not a sandbox.** It defeats *known, mechanical*
   evasion. A payload encoded with a scheme it does not implement, or one that
@@ -598,12 +598,12 @@ SkillGuard is honest about what it is:
   known-good patterns.
 - **Prompt injection is not solved.** An instruction that convinces the *model*
   through sound argument is indistinguishable from an instruction that
-  convinces it maliciously. SkillGuard flags the mechanical tells; judgement
+  convinces it maliciously. SkillSleuth flags the mechanical tells; judgement
   stays with you.
 - **Binaries are string-scanned, not disassembled.** Compiled artefacts are
   flagged and their strings inspected, but there is no decompiler here.
 - **The trust model is the real fix.** Know where your skills come from, pin
-  them, sign them, and control who can update them. SkillGuard is one layer.
+  them, sign them, and control who can update them. SkillSleuth is one layer.
 
 Report bypasses via [SECURITY.md](SECURITY.md). Please do: a bypass report that
 becomes a fixture is exactly how this project is meant to improve.

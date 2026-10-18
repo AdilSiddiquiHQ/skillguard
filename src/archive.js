@@ -4,7 +4,7 @@
  * Two of the four documented scanner bypasses relied on content the static
  * analysers never opened: a malicious shell script smuggled inside a `.docx`
  * (which is just a ZIP of XML) and a poisoned `.pyc` that disagreed with the
- * Python source beside it. SkillGuard opens both.
+ * Python source beside it. SkillSleuth opens both.
  *
  * The ZIP reader is intentionally small: central-directory driven, inflated
  * with `node:zlib`, and hard-guarded against zip bombs.

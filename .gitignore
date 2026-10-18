@@ -5,10 +5,10 @@ node_modules/
 dist/
 build/
 
-# SkillGuard local state
-.skillguard-cache/
-skillguard-report.json
-skillguard.sarif
+# SkillSleuth local state
+.skillsleuth-cache/
+skillsleuth-report.json
+skillsleuth.sarif
 
 # Editors / OS
 .DS_Store
@@ -22,7 +22,7 @@ npm-debug.log*
 yarn-error.log*
 
 # Generated reports
-skillguard-report.md
-skillguard-report.json
-skillguard.sarif
-skillguard-badge.svg
+skillsleuth-report.md
+skillsleuth-report.json
+skillsleuth.sarif
+skillsleuth-badge.svg

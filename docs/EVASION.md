@@ -1,6 +1,6 @@
 # Evasion resistance
 
-This document explains *why* SkillGuard scans views instead of files, what it
+This document explains *why* SkillSleuth scans views instead of files, what it
 catches today, and where the honest limits are. It is the technical companion to
 the "evasion resistance" section of the README.
 
@@ -29,7 +29,7 @@ matcher only has to miss once.
 
 ## The model
 
-SkillGuard does not scan a file. It scans a set of **views** derived from the
+SkillSleuth does not scan a file. It scans a set of **views** derived from the
 file, and every view keeps an index map back to the original bytes.
 
 ```
@@ -92,7 +92,7 @@ positions honest:
 The fixtures are committed so anyone can reproduce the result:
 
 ```bash
-node bin/skillguard.js examples/evasion
+node bin/skillsleuth.js examples/evasion
 ```
 
 The adversarial cases from the Trail of Bits report are asserted in
@@ -110,7 +110,7 @@ detection, CI fails.
 
 Evasion resistance is a direction, not a finish line. Specifically:
 
-- **Unknown encodings are not decoded.** A payload wrapped in a scheme SkillGuard
+- **Unknown encodings are not decoded.** A payload wrapped in a scheme SkillSleuth
   does not implement (a custom cipher, a compressed-then-encrypted blob) will not
   be recovered. The `SG-OBF-*` high-entropy rules raise the signal, but they do
   not decode it.
@@ -121,7 +121,7 @@ Evasion resistance is a direction, not a finish line. Specifically:
   trade against denial of service.
 - **A convincing argument still wins.** Static analysis cannot distinguish a
   legitimate instruction from a manipulative one if both are plain prose. That is
-  a model-level problem, and SkillGuard does not pretend to solve it.
+  a model-level problem, and SkillSleuth does not pretend to solve it.
 
 The point is not to be unbeatable. It is to make the *cheap* bypasses — the ones
 that worked on everything else — stop being cheap.

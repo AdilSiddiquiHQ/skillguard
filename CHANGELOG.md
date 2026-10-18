@@ -6,6 +6,24 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+## [0.4.0] - 2026-10-18
+
+### Changed
+
+- **Renamed from SkillGuard to SkillSleuth.** "SkillGuard" was already in use by
+  another agent-skill scanner, which makes a two-word name in a crowded
+  category worse than useless: searching for the project found someone else's.
+  The rename touches the package name, the `skillsleuth` binary, the config
+  filename (`.skillsleuth.yml`), generated file names (`skillsleuth.sarif`,
+  `skillsleuth-badge.svg`, `skillsleuth.sbom.json`), baseline and attestation
+  file names, and the `SKILLSLEUTH_*` environment variables. Nothing else about
+  behaviour changed — the rules, scoring and reports are byte-identical apart
+  from the name. Historical tags `v0.1.0`–`v0.3.1` still contain the old name,
+  as they should.
+- The attestation predicate type was `https://skillguard.dev/...`, a domain that
+  does not exist. It is now a resolvable URL under the repository, so a signed
+  statement points somewhere real.
+
 ## [0.3.1] - 2026-10-18
 
 ### Fixed
@@ -94,7 +112,7 @@ agent-skill scanner.
 - **Self-contained HTML report** (`--html`).
 - **GitHub Actions annotations** (`--github`).
 - **Policy as code**: declarative custom rules and `severity-overrides` in
-  `.skillguard.yml`.
+  `.skillsleuth.yml`.
 - **New commands**: `rules`, `explain <rule-id>`.
 - Adversarial fixtures under `examples/evasion/` and the `test/evasion.test.js`
   regression suite, wired into CI.
@@ -112,7 +130,7 @@ agent-skill scanner.
 
 ### Added
 
-- Initial release: the `skillguard` CLI, zero runtime dependencies.
+- Initial release: the `skillsleuth` CLI, zero runtime dependencies.
 - 48 detection rules across 9 categories (injection, credentials, exfiltration,
   execution, supply chain, obfuscation, metadata, secrets, assets), mapped to
   the OWASP Agentic Skills Top 10.
@@ -120,7 +138,7 @@ agent-skill scanner.
 - Reporters for the terminal, JSON, SARIF 2.1.0, Markdown and SVG badges.
 - Skill discovery for the open Agent Skills standard (folders with `SKILL.md`),
   including bundled script and binary asset inspection.
-- `.skillguard.yml` configuration with `fail-on`, `min-score`, `ignore`,
+- `.skillsleuth.yml` configuration with `fail-on`, `min-score`, `ignore`,
   `exclude`, `allow` and configurable thresholds.
 - Secret redaction in all output.
 - A per-skill SBOM with SHA-256 hashes of every file.
@@ -128,8 +146,9 @@ agent-skill scanner.
 - A test suite covering detection, scoring, reporters, config and the CLI.
 - A generated rule reference in `docs/RULES.md`.
 
-[Unreleased]: https://github.com/AdilSiddiquiHQ/skillguard/compare/v0.3.1...HEAD
-[0.3.1]: https://github.com/AdilSiddiquiHQ/skillguard/compare/v0.3.0...v0.3.1
-[0.3.0]: https://github.com/AdilSiddiquiHQ/skillguard/compare/v0.2.0...v0.3.0
-[0.2.0]: https://github.com/AdilSiddiquiHQ/skillguard/compare/v0.1.0...v0.2.0
-[0.1.0]: https://github.com/AdilSiddiquiHQ/skillguard/releases/tag/v0.1.0
+[Unreleased]: https://github.com/AdilSiddiquiHQ/skillsleuth/compare/v0.4.0...HEAD
+[0.4.0]: https://github.com/AdilSiddiquiHQ/skillsleuth/compare/v0.3.1...v0.4.0
+[0.3.1]: https://github.com/AdilSiddiquiHQ/skillsleuth/compare/v0.3.0...v0.3.1
+[0.3.0]: https://github.com/AdilSiddiquiHQ/skillsleuth/compare/v0.2.0...v0.3.0
+[0.2.0]: https://github.com/AdilSiddiquiHQ/skillsleuth/compare/v0.1.0...v0.2.0
+[0.1.0]: https://github.com/AdilSiddiquiHQ/skillsleuth/releases/tag/v0.1.0

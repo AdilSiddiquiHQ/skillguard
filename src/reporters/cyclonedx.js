@@ -28,12 +28,12 @@ export function renderCycloneDx(report, options = {}) {
       version: undefined,
       description: skill.description || undefined,
       properties: [
-        { name: 'skillguard:path', value: skill.path },
-        { name: 'skillguard:kind', value: skill.kind || 'skill' },
-        { name: 'skillguard:verdict', value: skill.verdict },
-        { name: 'skillguard:score', value: String(skill.score) },
+        { name: 'skillsleuth:path', value: skill.path },
+        { name: 'skillsleuth:kind', value: skill.kind || 'skill' },
+        { name: 'skillsleuth:verdict', value: skill.verdict },
+        { name: 'skillsleuth:score', value: String(skill.score) },
         ...(skill.evasions && skill.evasions.length
-          ? [{ name: 'skillguard:evasions', value: skill.evasions.join(', ') }]
+          ? [{ name: 'skillsleuth:evasions', value: skill.evasions.join(', ') }]
           : []),
       ],
     });
@@ -44,9 +44,9 @@ export function renderCycloneDx(report, options = {}) {
         'bom-ref': `file:${skill.path}/${entry.path}`,
         name: entry.path,
         properties: [
-          { name: 'skillguard:skill', value: skill.path },
-          { name: 'skillguard:bytes', value: String(entry.bytes) },
-          { name: 'skillguard:binary', value: String(entry.binary) },
+          { name: 'skillsleuth:skill', value: skill.path },
+          { name: 'skillsleuth:bytes', value: String(entry.bytes) },
+          { name: 'skillsleuth:binary', value: String(entry.binary) },
         ],
         hashes: entry.sha256 ? [{ alg: 'SHA-256', content: entry.sha256 }] : undefined,
       });
@@ -55,7 +55,7 @@ export function renderCycloneDx(report, options = {}) {
     for (const f of skill.findings) {
       vulnerabilities.push({
         id: `${f.ruleId}:${f.file}:${f.line}`,
-        source: { name: TOOL_NAME, url: 'https://github.com/AdilSiddiquiHQ/skillguard' },
+        source: { name: TOOL_NAME, url: 'https://github.com/AdilSiddiquiHQ/skillsleuth' },
         references: f.owasp
           ? [{ id: f.owasp, source: { name: 'OWASP Agentic Skills Top 10' } }]
           : undefined,
@@ -70,10 +70,10 @@ export function renderCycloneDx(report, options = {}) {
         recommendation: f.remediation || undefined,
         affects: [{ ref: `file:${skill.path}/${f.file}` }],
         properties: [
-          { name: 'skillguard:rule', value: f.ruleId },
-          { name: 'skillguard:category', value: f.category },
-          ...(f.evasion ? [{ name: 'skillguard:evasion', value: f.evasion }] : []),
-          ...(f.derivedFrom ? [{ name: 'skillguard:recovered-from', value: String(f.derivedFrom.file) }] : []),
+          { name: 'skillsleuth:rule', value: f.ruleId },
+          { name: 'skillsleuth:category', value: f.category },
+          ...(f.evasion ? [{ name: 'skillsleuth:evasion', value: f.evasion }] : []),
+          ...(f.derivedFrom ? [{ name: 'skillsleuth:recovered-from', value: String(f.derivedFrom.file) }] : []),
         ],
       });
     }
@@ -92,7 +92,7 @@ export function renderCycloneDx(report, options = {}) {
             type: 'application',
             name: TOOL_NAME,
             version: VERSION,
-            supplier: { name: 'SkillGuard' },
+            supplier: { name: 'SkillSleuth' },
           },
         ],
       },
@@ -101,8 +101,8 @@ export function renderCycloneDx(report, options = {}) {
         'bom-ref': 'root',
         name: 'agent-skills',
         properties: [
-          { name: 'skillguard:targets', value: String(report.summary.skills) },
-          { name: 'skillguard:rule-count', value: String(report.ruleCount) },
+          { name: 'skillsleuth:targets', value: String(report.summary.skills) },
+          { name: 'skillsleuth:rule-count', value: String(report.ruleCount) },
         ],
       },
     },

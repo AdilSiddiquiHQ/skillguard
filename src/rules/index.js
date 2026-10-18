@@ -1,5 +1,5 @@
 /**
- * The complete SkillGuard rule catalog.
+ * The complete SkillSleuth rule catalog.
  * Each rule maps to a category, a severity and an OWASP Agentic Skills
  * Top 10 identifier where applicable.
  */

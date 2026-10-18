@@ -1,6 +1,6 @@
 /**
- * Configuration loading. Looks for .skillguard.yml / .skillguard.yaml /
- * .skillguard.json upward from the scan root, plus any --config override.
+ * Configuration loading. Looks for .skillsleuth.yml / .skillsleuth.yaml /
+ * .skillsleuth.json upward from the scan root, plus any --config override.
  */
 
 import { existsSync, readFileSync } from 'node:fs';
@@ -10,7 +10,7 @@ import { parseSimpleYaml } from './frontmatter.js';
 import { DEFAULT_THRESHOLDS } from './score.js';
 import { compilePolicyRules } from './policy.js';
 
-const CONFIG_NAMES = ['.skillguard.yml', '.skillguard.yaml', '.skillguard.json'];
+const CONFIG_NAMES = ['.skillsleuth.yml', '.skillsleuth.yaml', '.skillsleuth.json'];
 
 export const DEFAULT_CONFIG = {
   failOn: 'high',
@@ -102,8 +102,8 @@ export function loadConfig({ cwd = process.cwd(), configPath = null } = {}) {
 }
 
 export function exampleConfig() {
-  return `# SkillGuard configuration
-# Docs: https://github.com/AdilSiddiquiHQ/skillguard#configuration
+  return `# SkillSleuth configuration
+# Docs: https://github.com/AdilSiddiquiHQ/skillsleuth#configuration
 
 # Fail the run when a finding of this severity (or worse) is present.
 # One of: critical | high | medium | low | none
@@ -131,8 +131,8 @@ thresholds:
   fail: 70
 
 # Only report and fail on findings that are NOT in this baseline file.
-# Generate one with: skillguard . --write-baseline .skillguard-baseline.json
-# baseline: .skillguard-baseline.json
+# Generate one with: skillsleuth . --write-baseline .skillsleuth-baseline.json
+# baseline: .skillsleuth-baseline.json
 
 # Raise or lower the severity of any built-in rule.
 # severity-overrides:
