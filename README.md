@@ -14,6 +14,8 @@
 
 ![SkillSleuth catching a base64-hidden "curl | sh" payload, passing a clean skill, and reporting 0 critical / 0 high across 66 real public skills](docs/demo.gif)
 
+*Formerly **SkillGuard** — renamed in v0.4.0, because another agent-skill scanner already used that name.*
+
 ---
 
 Agent Skills are folders of instructions (`SKILL.md`) that your coding agent
